@@ -1,0 +1,54 @@
+<div class="panel-body">
+	<%= form_tag(process_path || "/tab/disk_wizards/process",{method: "POST",id:"confirmation"}) %>
+	<%= hidden_field_tag 'device', user_selections['kname'] %>
+	<div class="row">
+		<% "*****************#{user_selections} \n ******** #{@selected_disk}>"%>
+		<div class="row">
+			<div class="col-md-4">
+				<%=
+ pie_chart({"Size: #{number_to_human_size @selected_disk.size}" => (@selected_disk.size)},\
+				library: {legend: {position: 'bottom'}, \
+				is3D: true, \
+				pieSliceText: 'percentage', \
+				tooltip: {text: 'percentage' }, \
+				width: 400, \
+				animation: {duration: 1000,easing: 'out'}, \
+				slices: [{color: '#A44585'},{color: '#00B5F0'}] \
+				})
+%>
+				<div class="col-md-6 col-md-offset-4">
+					<div class="alert alert-info">
+						<%= @selected_disk.kind_of?(Disk) ? @selected_disk.model : @selected_disk.disk.model %>
+					</div>
+				</div>
+
+			</div>
+			<div class="col-md-6 col-md-offset-1">
+				<br />
+				<ul class="list-group">
+					<% if user_selections['format'] %>
+					<a href="#"  class="list-group-item list-group-item-info"> <span class="badge alert-danger"> <span class="glyphicon glyphicon-ok"></span> </span> Format partition/Disk </a>
+					<a href="#"  class="list-group-item"> <span class="badge alert-info"><%= user_selections['fs_type'] %></span> New Filesystem Type </a>
+					<% end %>
+					<% user_selections['option'].try(:each) do  |option|   %>
+					<% if option == '1' %>
+					<a href="#"  class="list-group-item"> <span class="badge"> /var/hda/files/drives/drive# </span> Disk Mount Location </a>
+					<% else %>
+					<a href="#"  class="list-group-item"> <span class="badge alert-warning"> [Experimental] </span> Add it to shared stroage pool </a>
+					<% end %>
+					<% end %>
+
+				</ul>
+
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-4 col-md-offset-4 well well-sm">
+				<a class="btn btn-warning" href=<%= manage_path || "/tab/disk_wizards/manage" %> > <span class="glyphicon glyphicon-edit"></span> Go Back and Edit </a>
+				<%= button_tag(type: "submit", class: "btn btn-success",data: { confirm: "Are you sure?" }) do %>
+				Commit Changes <span class="glyphicon glyphicon-ok"></span>
+				<% end %>
+			</div>
+		</div>
+	</div>
+</div>

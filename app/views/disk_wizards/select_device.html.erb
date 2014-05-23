@@ -1,0 +1,141 @@
+<div class="panel-body">
+	<div class="row">
+		<% "*****************#{@new_disks}"%>
+
+		<div class="">
+			<table class="table table-hover">
+				<thead>
+					<tr data-toggle="collapse" data-target="#demo1" class="accordion-toggle" style="cursor: pointer" >
+						<th class="text-center">Select</th>
+						<th class="text-center">Model</th>
+						<th class="text-center">Path</th>
+						<th class="text-center">Size</th>
+						<th class="text-center">Format</th>
+					</tr>
+				</thead>
+				<tbody>
+					<%= form_tag(file_system_path || "/tab/disk_wizards/file_system" ,{method: "POST",id:"select_device"}) %>
+					<% for device in @new_disks%>
+					<tr <% unless device.partitions.blank? %> data-toggle="collapse" data-target= <%= "."+device.kname %> <% end %> class="accordion-toggle" style = "cursor: pointer;">
+						<td> <%= radio_button_tag(:device, device.kname,!!((user_selections['kname'] == device.kname) rescue false)) %> </td>
+						<td><%= device.model || "N/A"%>
+						<% if device.removable? %>
+						&nbsp; <span data-toggle="tooltip" title="Removable/External Device" style="color: red" class="glyphicon glyphicon-floppy-disk"></span> 
+						<% elsif device.partition_table.blank? %>
+						&nbsp; <span data-toggle="tooltip" title="New Device(No Partition Table)" style="color: blue" class="glyphicon glyphicon-star"></span> 
+						<% end %> </td>
+						<td><%= "/dev/#{device.kname}"%></td>
+						<td><%= number_to_human_size device.size %></td>
+						<td><label> <%= check_box_tag(:format,1,!!(user_selections['format'] && (user_selections['kname'] == device.kname) rescue false), class: 'format') %> </label></td>
+					</tr>
+					<tr >
+						<td style="border-top: none;" colspan="6" class="hiddenRow">
+						<div class="accordian-body collapse <%= device.kname %>" >
+							<div class="progress">
+								<div class="progress-bar progress-bar-success" style="width: 40%">
+									<span class="sr-only">sda1</span>
+									<span>40% sda1</span>
+
+								</div>
+								<div class="progress-bar progress-bar-warning" style="width: 20%">
+									<span>20% sda2</span>
+								</div>
+								<div class="progress-bar progress-bar-danger" style="width: 20%">
+									<span>20% sda3</span>
+								</div>
+								<div class="progress-bar progress-bar" style="width: 20%">
+									<span>20% sda3</span>
+								</div>
+							</div >
+						</div></td>
+					</tr>
+					<tr >
+						<td colspan="1" style="border: none">
+						<div class="accordian-body collapse <%= device.kname %>" >
+							<button type="button" class="btn btn-default btn-lg">
+								<span class="glyphicon glyphicon-hdd btn-lg"></span><%= device.model %>
+							</button>
+						</div></td>
+						<td style="border: none;" colspan="5" class="hiddenRow">
+						<div class="accordian-body collapse <%= device.kname %>" >
+
+							<table class="table table-bordered table-hover">
+
+								<tbody>
+									<!--
+									device['partitions'] reffrence
+									"TYPE"=>"part", "SIZE"=>"104857600", "KNAME"=>"sda1", "MOUNTPOINT"=>nil, "FSTYPE"=>"devtmpfs"
+									-->
+
+									<%
+									unless device.partitions.blank?
+									for partition in device.partitions %>
+									<tr>
+										<td> <%= radio_button_tag(:device, partition.kname,!!(user_selections['kname'] == partition.kname rescue false),'data-toggle' => "tooltip",'title' =>"Select this prtition") %> </td>
+										<td data-toggle="tooltip" title="Mount point"> <%= partition.mountpoint || "No mount point" %> </td>
+										<td data-toggle="tooltip" title="Disk name"> <%= partition.kname %> </td>
+										<td><% if partition.fstype.nil? %> <span class='glyphicon glyphicon-warning-sign'></span> Unknown
+										<% else %>
+										<%= partition.fstype %>
+										<% end %> </td>
+
+										<td data-toggle="tooltip" title="Total size" > <%= number_to_human_size partition.size %> </td>
+										<td><label> <%= check_box_tag(:format,1,!!(user_selections['format'] && (user_selections['kname'] == partition.kname) rescue false),class: 'format') %> </label></td>
+									</tr>
+									<%
+									end
+									end %>
+								</tbody>
+							</table>
+
+						</div></td>
+					</tr>
+					<% end %>
+				</tbody>
+
+			</table>
+
+		</div>
+
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h3 class="panel-title">Disks Currently in Use</h3>
+			</div>
+			<% if @mounted_disks.any? %>
+			<div class="panel-body">
+				<div class="row">
+					<% @mounted_disks.each do | disk | %>
+					<div class="col-md-6">
+						<h5><%= disk[:path] %> <span class="label label-default"> <%= number_to_human_size disk[:bytes_total] %></span></h5>
+						<%=
+ pie_chart({"Used: #{number_to_human_size disk[:used]}" => (disk[:bytes_total] - disk[:bytes_free]),"Free: #{number_to_human_size disk[:available]}" => disk[:bytes_free]},\
+						library: {legend: {position: 'top'}, \
+						is3D: true, \
+						pieSliceText: 'percentage', \
+						tooltip: {text: 'percentage' }, \
+						width: 400, \
+						slices: [{color: '#A44585'},{color: '#00B5F0'}] \
+						})
+%>
+
+					</div>
+					<% end %>
+				</div>
+				<% end %>
+			</div>
+
+			<div class="row">
+				<ul class="pager">
+					<li class="previous disabled">
+						<a href="#">&larr; Back</a>
+					</li>
+					<li class="next">
+						<%= link_to '#', :onclick => "$('#select_device').submit()" do %>
+						Next &rarr;
+						<% end %>
+					</li>
+				</ul>
+				</form>
+			</div>
+		</div>
+	</div>

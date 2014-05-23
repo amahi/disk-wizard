@@ -1,0 +1,56 @@
+<div class="panel-body">
+	<%= form_tag(confirmation_path || "/tab/disk_wizards/confirmation",{method: "POST",id:"options"}) %>
+	<%= hidden_field_tag 'device', user_selections['kname'] %>
+	<div class="row">
+		<% "*****************#{user_selections}"%>
+		<div class="col-md-5 col-md-offset-3 well">
+			<ul class="list-group">
+				<li class="list-group-item list-group-item-success">
+					<h5>What would you like to do with this new drive</h5>
+
+				</li>
+				<li class="list-group-item">
+					<div class="checkbox">
+						<label>
+							<%= check_box_tag('option[]',1,!!((user_selections['option'].include? '1') rescue false)) %>
+							<div class="alert alert-info">
+								Mount this drive automatically, Your drive will be available in /var/hda/files/drives/drive#
+								You will then be able to <a href="#" class="alert-link">create new share</a> in this directory to use this drive
+
+							</div> </label>
+					</div>
+
+				</li>
+
+				<li class="list-group-item">
+
+					<div class="checkbox">
+						<label>
+							<%= check_box_tag('option[]',2,!!((user_selections['option'].include? '2') rescue false)) %>
+							<div class="alert alert-info">
+								[Experimental] Add it to your <a href="#" class="alert-link">shared stroage pool</a>
+
+							</div> </label>
+					</div>
+
+				</li>
+
+			</ul>
+		</div>
+	</div>
+	<div class="row">
+		<ul class="pager">
+			<li class="previous">
+				<%= link_to file_system_path || "/tab/disk_wizards/file_system" do %>
+				&larr; Back
+				<% end %>
+			</li>
+			<li class="next">
+				<%= link_to '#', :onclick => "$('#options').submit()" do %>
+				Next &rarr;
+				<% end %>
+			</li>
+		</ul>
+
+	</div>
+</div>

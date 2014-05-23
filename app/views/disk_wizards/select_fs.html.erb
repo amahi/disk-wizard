@@ -1,0 +1,94 @@
+<div class="panel-body">
+	<script>
+		function check() {
+			if (($('input[type=radio]:checked').size() > 0)) {
+				return true;
+			}
+			alert("Please select a file system type!");
+			return false;
+		}
+	</script>
+	<%= form_tag(manage_path || "/tab/disk_wizards/manage" ,{method: "POST",id:"select_fs", onsubmit: "return check()"}) %>
+	<%= hidden_field_tag 'device', @selected_disk.kname %>
+	<div class="row">
+		<div class="col-md-4 col-md-offset-1">
+			<% "*****************#{@selected_disk}"%>
+
+			<%=
+ pie_chart({"Size: #{number_to_human_size @selected_disk.size}" => (@selected_disk.size)},\
+			library: {legend: {position: 'top'}, \
+			is3D: true, \
+			pieSliceText: 'percentage', \
+			tooltip: {text: 'percentage' }, \
+			width: 400, \
+			slices: [{color: '#A44585'},{color: '#00B5F0'}] \
+			})
+%>
+			<div class="has-success has-feedback">
+				<label class="control-label" for="inputSuccess4">Drive selected</label>
+				<input type="text" class="form-control" value="<%= @selected_disk.kind_of?(Disk) ? @selected_disk.model : @selected_disk.disk.model %>" disabled>
+				<span class="glyphicon glyphicon-ok form-control-feedback"></span>
+			</div>
+
+		</div>
+		<div class="col-md-5 col-md-offset-1">
+
+			<div class="well">
+
+				<ul class="list-group">
+					<li class="list-group-item list-group-item-success">
+						Please select a file system type
+
+					</li>
+					<li class="list-group-item">
+						<label> <%= radio_button_tag(:fs_type, "ext4",!!(user_selections && user_selections['fs_type'] == "ext4")) %>
+							Ext4 </label>
+
+					</li>
+					<li class="list-group-item">
+						<label> <%= radio_button_tag(:fs_type, "ext3",!!(user_selections && user_selections['fs_type'] == "ext3")) %>
+							Ext3 </label>
+
+					</li>
+
+					<li class="list-group-item">
+						<label> <%= radio_button_tag(:fs_type, "ntfs",!!(user_selections && user_selections['fs_type'] == "ntfs")) %>
+							NTFS </label>
+
+					</li>
+					<li class="list-group-item">
+						<label> <%= radio_button_tag(:fs_type, "fat32",!!(user_selections && user_selections['fs_type'] == "fat32")) %>
+							FAT32 </label>
+
+					</li>
+
+				</ul>
+
+			</div>
+
+		</div>
+
+	</div>
+	<div class="row">
+
+		<div class="row">
+			<ul class="pager">
+				<li class="previous">
+					<%= link_to select_path || "/tab/disk_wizards/select" do %>
+					&larr; Back
+					<% end %>
+				</li>
+				<li class="next">
+					<% link_to manage_path || "/tab/disk_wizards/manage" do %>
+					Next &rarr;
+					<% end %>
+					<%= link_to '#', :onclick => "$('#select_fs').submit()" do %>
+					Next &rarr;
+					<% end %>
+				</li>
+			</ul>
+
+		</div>
+	</div>
+	</form>
+</div>

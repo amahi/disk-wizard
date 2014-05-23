@@ -1,0 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title><%= @page_title ||= 'Amahi Disk Wizard' %></title>
+
+		<%= stylesheet_link_tag "application", media: "all" %>
+		<%= stylesheet_link_tag "basic", media: "all" %>
+
+		<%= javascript_include_tag "//www.google.com/jsapi", "chartkick" %>
+		<%= javascript_include_tag "application"%>
+
+		<%= favicon_link_tag "fav/favicon.ico"%>
+		<%= csrf_meta_tag %>
+
+	</head>
+	<body>
+
+		<%=
+		#render "shared/header"
+		%>
+
+		<div class="container" style="margin-top: 10px">
+
+			<div class="row text-center">
+				<div class="col-md-12">
+					<div class="panel panel-default">
+
+						<ul class="nav nav-pills nav-justified">
+							<li class=<%= params[:action] == "select_device" ? "active" : "disabled" %> >
+								<a href="#">Select new drive <span class="glyphicon glyphicon-chevron-right"></span> </a>
+							</li>
+							<li class=<%= params[:action] == "select_fs" ? "active" : "disabled" %> >
+								<a href="#">Choose file system <span class="glyphicon glyphicon-chevron-right"></span> </a>
+							</li>
+							<li class=<%= params[:action] == "manage_disk" ? "active" : "disabled" %> >
+								<a href="#">Options <span class="glyphicon glyphicon-chevron-right"></span> </a>
+							</li>
+							<li class=<%= params[:action] == "confirmation" ? "active" : "disabled" %> >
+								<a href="#">confirmation <span class="glyphicon glyphicon-chevron-right"></span> </a>
+							</li>
+							<li class=<%= params[:action] == "done" ? "active" : "disabled" %> >
+								<a href="#">Done <span class="glyphicon glyphicon-ok"></span> </a>
+							</li>
+
+						</ul>
+						<!-- TEMP code :- params[:action] == "select_fs"	 -->
+						<% if flash[:error] %>
+						<div class="aleart_box">
+							<div class="alert alert-danger alert-dismissable">
+								<button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+									&times;
+								</button>
+								<strong>Warning!</strong> <%= flash[:error] %>
+							</div>
+						</div>
+						<% flash[:error] = nil %>
+						<% end %>
+						<%= yield %>
+
+					</div>
+				</div>
+			</div>
+
+		</div>
+
+		<% render "shared/footer" %>
+
+	</body>
+</html>
+
