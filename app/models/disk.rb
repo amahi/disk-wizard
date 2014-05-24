@@ -119,8 +119,9 @@ class Disk #< ActiveRecord::Base
 
   end
 
-  def unmount
-    Diskwz.umount self
+  def unmount disk
+    raise "#{__method__} method not implimented !"
+
   end
 
   def create_partition partition_params_hash
@@ -136,18 +137,14 @@ class Disk #< ActiveRecord::Base
   def format_job params_hash
     puts "DEBUG:********** format_job params_hash #{params_hash}"
     Disk.progress = 10
-    puts "DEBUG:*********** umount @path umount #{self.path}"
-    unmount if mountpoint
-    new_fstype = params_hash[:fs_type]
-    if self.kind_of? Disk
-      puts "DEBUG:*********** umount @path umount #{self.path}"
-    elsif self.kind_of? Partition
-      puts "DEBUG:*********** umount @path umount #{self.path}"
-    end
+    puts "DEBUG:*********** umount @path umount #{@path}"
+    Command.new("umount #{@path}").run_now
+    fs_type = params_hash[:fs_type]
+    parted_object = Parted.new @kname
     #TODO: check the disk size and pass the relevent partition table type (i.e. if device size >= 3TB create GPT table else MSDOS(MBR))
     #TODO: check returned value for errors
     Disk.progress = 40
-    # @kname = parted_object.format fs_type
+    @kname = parted_object.format fs_type
   end
 
   def mount_job params_hash
@@ -165,4 +162,17 @@ class Disk #< ActiveRecord::Base
     Disk.progress = 80
   end
 
+  def process_queue jobs_queue
+    while(not jobs_queue.empty?)
+      job =  jobs_queue.dequeue
+      puts "DEBUG:******* job[:job_name] = #{job[:job_name]} job[:job_para] =  $ #{job[:job_para]}"
+      begin
+        self.send(job[:job_name],job[:job_para])
+      rescue => exception
+        puts "DEBUG:*** JOB FAILS #{exception.inspect}"
+        return false
+      end
+    end
+    return true
+  end
 end

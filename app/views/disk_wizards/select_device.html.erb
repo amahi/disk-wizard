@@ -14,7 +14,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					<%= form_tag(file_system_path || "/tab/disk_wizards/file_system" ,{method: "POST",id:"select_device"}) %>
+					<%= form_tag(disk_wizards_engine ? disk_wizards_engine.file_system_path : file_system_path ,{method: "POST",id:"select_device"}) %>
 					<% for device in @new_disks%>
 					<tr <% unless device.partitions.blank? %> data-toggle="collapse" data-target= <%= "."+device.kname %> <% end %> class="accordion-toggle" style = "cursor: pointer;">
 						<td> <%= radio_button_tag(:device, device.kname,!!((user_selections['kname'] == device.kname) rescue false)) %> </td>

@@ -12,14 +12,13 @@ class DiskWizardsController < ApplicationController
     self.user_selections = {kname: device,format: format} if device or format
     puts device
     if not(device and request.post?)
-      redirect_to select_path || "/tab/disk_wizards/select", :flash => { :error => "You should select a Device or a Partition to continue with the Disk-Wizard" }
+      redirect_to disk_wizards_engine ? disk_wizards_engine.select_path : select_path, :flash => { :error => "You should select a Device or a Partition to continue with the Disk-Wizard" }
       return false
     elsif (not format and request.post?)
-      redirect_to manage_path || "/tab/disk_wizards/manage" and return
+      redirect_to(disk_wizards_engine ? disk_wizards_engine.manage_path : manage_path) and return
     end
     flash[:error] = "This will completely erase this new drive! Make sure the selected hard drive is the drive you'd like to erase."
     @selected_disk = Disk.find(device || user_selections['kname'])
-    # puts "DEBUG *************************************#{device}"
 
   end
 
@@ -27,7 +26,7 @@ class DiskWizardsController < ApplicationController
     device = params[:device]
     fs_type = params[:fs_type]
     if (not(fs_type or user_selections['fs_type']) and not user_selections['kname'])
-      redirect_to file_system_path || "/tab/disk_wizards/file_system", :flash => { :error => "You should select a filesystem to continue with the Disk-Wizard" }
+      redirect_to disk_wizards_engine ? disk_wizards_engine.file_system_path : file_system_path , :flash => { :error => "You should select a filesystem to continue with the Disk-Wizard" }
       return false
     end
     self.user_selections = {fs_type: fs_type}
@@ -63,10 +62,10 @@ class DiskWizardsController < ApplicationController
     success = jobs_queue.process_queue disk
     if success
       Disk.progress = 100
-      redirect_to complete_path || "/tab/disk_wizards/complete"
+      redirect_to(disk_wizards_engine ? disk_wizards_engine.complete_path : complete_path)
     else
       Disk.progress = -1
-      redirect_to error_path || "/tab/disk_wizards/error"
+      redirect_to(disk_wizards_engine ? disk_wizards_engine.error_path : error_path)
     end
   end
 

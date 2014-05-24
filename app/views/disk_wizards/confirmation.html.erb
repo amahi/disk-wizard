@@ -1,5 +1,5 @@
 <div class="panel-body">
-	<%= form_tag(process_path || "/tab/disk_wizards/process",{method: "POST",id:"confirmation"}) %>
+	<%= form_tag(disk_wizards_engine ? disk_wizards_engine.process_path : process_path,{method: "POST",id:"confirmation"}) %>
 	<%= hidden_field_tag 'device', user_selections['kname'] %>
 	<div class="row">
 		<% "*****************#{user_selections} \n ******** #{@selected_disk}>"%>
@@ -44,7 +44,7 @@
 		</div>
 		<div class="row">
 			<div class="col-md-4 col-md-offset-4 well well-sm">
-				<a class="btn btn-warning" href=<%= manage_path || "/tab/disk_wizards/manage" %> > <span class="glyphicon glyphicon-edit"></span> Go Back and Edit </a>
+				<a class="btn btn-warning" href=<%= disk_wizards_engine ? disk_wizards_engine.manage_path : manage_path %> > <span class="glyphicon glyphicon-edit"></span> Go Back and Edit </a>
 				<%= button_tag(type: "submit", class: "btn btn-success",data: { confirm: "Are you sure?" }) do %>
 				Commit Changes <span class="glyphicon glyphicon-ok"></span>
 				<% end %>
