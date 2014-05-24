@@ -154,27 +154,41 @@ class Diskwz
 
     def format disk, fstype
       fstype = "vfat" if fstype == "fat32"
-       fstype == "ntfs" ? quick_format = "-f" : quick_format = nil
+      fstype == "ntfs" ? quick_format = "-f" : quick_format = nil
       command = "mkfs.#{fstype} "
       params = "-q #{quick_format} -F #{disk.path}" #-F parameter to ignore warning and -q for quiet execution
       
       mkfs = DiskCommand.new command, params
       mkfs.execute
-      raise "Command execution error: #{mkfs.stderr.read}" if not mkfs.success?    
+      raise "Command execution error: #{mkfs.stderr.read}" if not mkfs.success?
     end
     
-    def create_partition
-      
+    #TODO: For no this method only support new devices
+    def create_partition device
+      command = 'parted'
+      params = "-s -a optimal #{device.path} mkpart primary 1 -- -1"
+      parted = DiskCommand.new command, params
+      parted.execute
+      raise "Command execution error: #{parted.stderr.read}" if not parted.success?
+      new_partition_kname = device.kname + "1"
+      return new_partition_kname
     end
     
     def create_mount_point mount_point
       command = 'mkdir'
-      params = '-p #{mount_point}'
+      params = "-p #{mount_point}"
       mkdir = DiskCommand.new command, params
       mkdir.execute
-      raise "Command execution error: #{mkdir.stderr.read}" if not mkdir.success?    
+      raise "Command execution error: #{mkdir.stderr.read}" if not mkdir.success?
     end
 
+    def create_partition_table device,type = 'msdos'
+      command = 'parted'
+      params = "--script #{device.path} mklabel #{type}"
+      parted = DiskCommand.new command, params
+      parted.execute
+      raise "Command execution error: #{parted.stderr.read}" if not parted.success?
+    end
     private
 
     def get_kname disk

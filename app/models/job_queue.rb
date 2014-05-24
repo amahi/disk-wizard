@@ -52,11 +52,25 @@ class JobQueue
 
     return x
   end
-
   # Resets the queue
   def reset
     @array = Array.new(@length)
     @head = nil
     @tail = 0
   end
+  
+  def process_queue disk
+    while(not self.empty?)
+      job =  self.dequeue
+      puts "DEBUG:******* job[:job_name] = #{job[:job_name]} job[:job_para] =  $ #{job[:job_para]}"
+      begin
+        disk.send(job[:job_name],job[:job_para])
+      rescue => exception
+        puts "DEBUG:*** JOB FAILS #{exception.inspect}"
+        return false
+      end
+    end
+    return true
+  end
+
 end

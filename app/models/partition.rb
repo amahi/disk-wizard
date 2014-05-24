@@ -16,26 +16,53 @@
 class Partition
   attr_reader  :fstype,:size, :mountpoint, :used, :available
   attr_accessor :kname
-
+  @@types = {primary: 'primary', logical: 'logical', extended: 'extended'}
+  cattr_reader :types
   def initialize partition
     partition.each do |key,value|
       instance_variable_set("@#{key}", value) unless value.nil?
     end
   end
-  
+
   def disk
     # `@disk` is a Disk object
     # Partition has_one Disk relationship
     @disk ||= get_disk
     return @disk
   end
-  
+
   def path
     return "/dev/#{@kname}"
   end
+
+  def unmount
+    Diskwz.umount self
+  end
   
+  def format fstype
+      Diskwz.format self, fstype
+  end
+
+  def format_job params_hash
+    Disk.progress = 10
+    unmount if mountpoint
+    new_fstype = params_hash[:fs_type]
+    format new_fstype
+    Disk.progress = 40
+    return true
+  end
+
+  def mount_job params_hash
+    Disk.progress = 60
+    label = params_hash['label'] || self.kname
+    mount_point = File.join "/var/hda/files/drives/", label
+    FileUtils.mkdir_p mount_point unless File.directory?(mount_point)
+    Diskwz.mount mount_point, self
+    Disk.progress = 80
+  end
+
   private
-  
+
   def get_disk
     #Strip partition number
     puts "@kname = #{@kname}"
