@@ -35,6 +35,13 @@ class Partition
     return "/dev/#{@kname}"
   end
 
+  def mount label
+    label ||= self.kname
+    mount_point = File.join "/var/hda/files/drives/", label
+    FileUtils.mkdir_p mount_point unless File.directory?(mount_point)
+    Diskwz.mount mount_point, self
+  end
+
   def unmount
     Diskwz.umount self
   end
@@ -53,11 +60,8 @@ class Partition
   end
 
   def mount_job params_hash
-    Disk.progress = 60
-    label = params_hash['label'] || self.kname
-    mount_point = File.join "/var/hda/files/drives/", label
-    FileUtils.mkdir_p mount_point unless File.directory?(mount_point)
-    Diskwz.mount mount_point, self
+    Disk.progress = 60    
+    mount params_hash['label']
     Disk.progress = 80
   end
 

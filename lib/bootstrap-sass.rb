@@ -30,7 +30,7 @@ module Bootstrap
     end
 
     def assets_path
-      @assets_path ||= File.join gem_path, 'vendor', 'assets'
+      @assets_path ||= File.join gem_path, 'app', 'assets'
     end
 
     # Environment detection helpers
@@ -50,8 +50,7 @@ module Bootstrap
 
     def configure_sass
       ::Sass.load_paths << stylesheets_path
-
-      # bootstrap requires minimum precision of 10, see https://github.com/twbs/bootstrap-sass/issues/409
+     # bootstrap requires minimum precision of 10, see https://github.com/twbs/bootstrap-sass/issues/409
       ::Sass::Script::Number.precision = [10, ::Sass::Script::Number.precision].max
     end
 

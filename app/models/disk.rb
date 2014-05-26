@@ -148,6 +148,7 @@ class Disk #< ActiveRecord::Base
     create_partition_table if not partition_table
     partition = create_partition
     partition.format new_fstype
+    partition.mount params_hash['label']
     Disk.progress = 40
   end
 
