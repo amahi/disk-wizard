@@ -132,9 +132,10 @@ class Diskwz
     end
 
     def umount disk
+      #un-mounting not guaranteed, remain mounted if device is busy
       kname = get_kname disk
       command = "umount"
-      params = "/dev/#{kname}"
+      params = " -l /dev/#{kname}"
       umount = DiskCommand.new command,params
       umount.execute
       raise "Command execution error: #{umount.stderr.read}" if not umount.success?
@@ -189,6 +190,16 @@ class Diskwz
       parted.execute
       raise "Command execution error: #{parted.stderr.read}" if not parted.success?
     end
+
+    def delete_partition partition
+      raise "#{partition.path} is not a partition" if not partition.is_a? Partition
+      command = 'parted'
+      params = "--script #{partition.disk.path} rm #{partition.partition_number}"
+      parted = DiskCommand.new command, params
+      parted.execute
+      raise "Command execution error: #{parted.stderr.read}" if not parted.success?
+    end
+
     private
 
     def get_kname disk
