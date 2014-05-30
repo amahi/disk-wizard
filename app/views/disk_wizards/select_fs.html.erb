@@ -1,4 +1,68 @@
+<script type="text/javascript">
+	google.load("visualization", "1", {
+packages : ["corechart"]
+});
+google.setOnLoadCallback(drawChart);
+function drawChart() {
+var data = google.visualization.arrayToDataTable([
+['disk', 'sda1', 'sda2',{ role: 'tooltip' },{ role: 'style' },{ role: 'annotation' }, 'sda3',{ role: 'tooltip' },{ role: 'style' },'sda4',{ role: 'style' },{ role: 'annotation' } ],
+['sda', <%= @test %>
+	, 24,'middle','stroke-color: #775588; stroke-width: 2; fill-color: #AEB404; fill-opacity: 0.9',"wewsdsf",20, 'Lahooola','stroke-color: #775588; stroke-opacity: 0.9; stroke-width: 2; fill-color: #AEB404; fill-opacity: 0.9',20,'stroke-color: #775588; stroke-opacity: 0.9; stroke-width: 2; fill-color: #424242; fill-opacity: 0.4','oks'],
+	]);
+
+	var options = {
+		annotations : {
+			textStyle : {
+				fontName : 'Times-Roman',
+				fontSize : 14,
+			}
+		},
+		width : '100%',
+		backgroundColor : '#F2F2F2',
+		height : 100,
+		legend : {
+			position : 'top',
+			maxLines : 10
+		},
+		bar : {
+			groupWidth : '100%'
+		},
+		isStacked : true,
+		enableInteractivity : true,
+		hAxis : {
+			viewWindowMode : 'maximized',
+			gridlines : {
+				color : 'transparent'
+			},
+			format : '#GB'
+		},
+		chartArea : {
+			width : '95%'
+		},
+		legend : {
+			position : 'top',
+			alignment : 'center'
+		},
+		enableInteractivity : true,
+	};
+
+	var chart = new google.visualization.BarChart(document.getElementById('disk_stats'));
+	google.visualization.events.addListener(chart, 'select', function() {
+		var selection = chart.getSelection();
+		// alert(data.getValue(selection[0].row, 1));
+	});
+	chart.draw(data, options);
+	}
+</script>
+
 <div class="panel-body">
+	<div class="row">
+		<div class="well" id="disk_stats">
+			<p class="bg-danger">
+				Something went wrong!
+			</p>
+		</div>
+	</div>
 	<script>
 		function check() {
 			if (($('input[type=radio]:checked').size() > 0)) {
@@ -8,7 +72,7 @@
 			return false;
 		}
 	</script>
-	<%= form_tag(disk_wizards_engine ? disk_wizards_engine.manage_path : manage_path ,{method: "POST",id:"select_fs", onsubmit: "return check()"}) %>
+	<%= form_tag(defined?(disk_wizards_engine) ? disk_wizards_engine.manage_path : manage_path ,{method: "POST",id:"select_fs", onsubmit: "return check()"}) %>
 	<%= hidden_field_tag 'device', @selected_disk.kname %>
 	<div class="row">
 		<div class="col-md-4 col-md-offset-1">
@@ -74,12 +138,12 @@
 		<div class="row">
 			<ul class="pager">
 				<li class="previous">
-					<%= link_to(disk_wizards_engine ? disk_wizards_engine.select_path : select_path) do %>
+					<%= link_to(defined?(disk_wizards_engine) ? disk_wizards_engine.select_path : select_path) do %>
 					&larr; Back
 					<% end %>
 				</li>
 				<li class="next">
-					<% link_to(disk_wizards_engine ? disk_wizards_engine.manage_path : manage_path) do %>
+					<% link_to(defined?(disk_wizards_engine) ? disk_wizards_engine.manage_path : manage_path) do %>
 					Next &rarr;
 					<% end %>
 					<%= link_to '#', :onclick => "$('#select_fs').submit()" do %>
