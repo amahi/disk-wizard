@@ -31,6 +31,12 @@ class Partition
     return @disk
   end
 
+  def delete
+    #TODO: remove fstab entry if disk is permanently mounted
+    unmount if mountpoint
+    Diskwz.delete_partition self
+  end
+
   def path
     return "/dev/#{@kname}"
   end
@@ -65,13 +71,17 @@ class Partition
     Disk.progress = 80
   end
 
+  def partition_number
+    partition_number_string = self.kname.match(/[0-9]*$/)
+    return partition_number_string[0].to_i
+  end
   private
 
   def get_disk
     #Strip partition number
-    puts "@kname = #{@kname}"
+    #puts "@kname = #{@kname}"
     disk_kname = @kname.gsub(/[0-9]/, "")
-    puts "disk_kname = #{disk_kname}"
+    #puts "disk_kname = #{disk_kname}"
     disk = Disk.find disk_kname
     return disk
   end

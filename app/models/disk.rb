@@ -146,6 +146,7 @@ class Disk #< ActiveRecord::Base
     puts "DEBUG:*********** umount @path umount #{self.path}"
     #TODO: check the disk size and pass the relevent partition table type (i.e. if device size >= 3TB create GPT table else MSDOS(MBR))
     create_partition_table if not partition_table
+    delete_all_partitions if not partitions.blank?
     partition = create_partition
     partition.format new_fstype
     partition.mount params_hash['label']
@@ -167,4 +168,9 @@ class Disk #< ActiveRecord::Base
     Disk.progress = 80
   end
 
+  def delete_all_partitions
+    for partition in self.partitions
+      partition.delete
+    end
+  end
 end
