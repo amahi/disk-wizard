@@ -9,27 +9,31 @@ class DiskWizardsController < ApplicationController
   def select_fs
     device = params[:device]
     format = params[:format]
-    self.user_selections = {kname: device,format: format} if device or format
+    self.user_selections = {kname: device} if device or format
     puts device
     if not(device and request.post?)
       redirect_to defined?(disk_wizards_engine) ? disk_wizards_engine.select_path : select_path, :flash => { :error => "You should select a Device or a Partition to continue with the Disk-Wizard" }
       return false
-    elsif (not format and request.post?)
+    elsif (format and request.post?)
+      disk = Disk.find(device || user_selections['kname'])
+      flash[:error] = "This will completely erase #{disk.model} drive! Make sure the selected hard drive is the drive you'd like to erase."
       redirect_to(defined?(disk_wizards_engine) ? disk_wizards_engine.manage_path : manage_path) and return
     end
-    flash[:error] = "This will completely erase this new drive! Make sure the selected hard drive is the drive you'd like to erase."
     @selected_disk = Disk.find(device || user_selections['kname'])
-    @test = 12
   end
 
   def manage_disk
+    # render text: params
+    # return false
     device = params[:device]
+    format = params[:format]
+    partition = params[:partition]
     fs_type = params[:fs_type]
     if (not(fs_type or user_selections['fs_type']) and not user_selections['kname'])
       redirect_to defined?(disk_wizards_engine) ? disk_wizards_engine.file_system_path : file_system_path , :flash => { :error => "You should select a filesystem to continue with the Disk-Wizard" }
       return false
     end
-    self.user_selections = {fs_type: fs_type}
+    self.user_selections = {fs_type: fs_type,format: format}
     # render text: "params = #{params} and  user_selections #{user_selections}"
   end
 
