@@ -28,68 +28,6 @@
 						<td><%= number_to_human_size device.size %></td>
 						<td><label> <%= check_box_tag(:format,1,!!(user_selections['format'] && (user_selections['kname'] == device.kname) rescue false), class: 'format') %> </label></td>
 					</tr>
-					<tr >
-						<td style="border-top: none;" colspan="6" class="hiddenRow">
-						<div class="accordian-body collapse <%= device.kname %>" >
-							<div class="progress">
-								<div class="progress-bar progress-bar-success" style="width: 40%">
-									<span class="sr-only">sda1</span>
-									<span>40% sda1</span>
-
-								</div>
-								<div class="progress-bar progress-bar-warning" style="width: 20%">
-									<span>20% sda2</span>
-								</div>
-								<div class="progress-bar progress-bar-danger" style="width: 20%">
-									<span>20% sda3</span>
-								</div>
-								<div class="progress-bar progress-bar" style="width: 20%">
-									<span>20% sda3</span>
-								</div>
-							</div >
-						</div></td>
-					</tr>
-					<tr >
-						<td colspan="1" style="border: none">
-						<div class="accordian-body collapse <%= device.kname %>" >
-							<button type="button" class="btn btn-default btn-lg">
-								<span class="glyphicon glyphicon-hdd btn-lg"></span><%= device.model %>
-							</button>
-						</div></td>
-						<td style="border: none;" colspan="5" class="hiddenRow">
-						<div class="accordian-body collapse <%= device.kname %>" >
-
-							<table class="table table-bordered table-hover">
-
-								<tbody>
-									<!--
-									device['partitions'] reffrence
-									"TYPE"=>"part", "SIZE"=>"104857600", "KNAME"=>"sda1", "MOUNTPOINT"=>nil, "FSTYPE"=>"devtmpfs"
-									-->
-
-									<%
-									unless device.partitions.blank?
-									for partition in device.partitions %>
-									<tr>
-										<td> <%= radio_button_tag(:device, partition.kname,!!(user_selections['kname'] == partition.kname rescue false),'data-toggle' => "tooltip",'title' =>"Select this prtition") %> </td>
-										<td data-toggle="tooltip" title="Mount point"> <%= partition.mountpoint || "No mount point" %> </td>
-										<td data-toggle="tooltip" title="Disk name"> <%= partition.kname %> </td>
-										<td><% if partition.fstype.nil? %> <span class='glyphicon glyphicon-warning-sign'></span> Unknown
-										<% else %>
-										<%= partition.fstype %>
-										<% end %> </td>
-
-										<td data-toggle="tooltip" title="Total size" > <%= number_to_human_size partition.size %> </td>
-										<td><label> <%= check_box_tag(:format,1,!!(user_selections['format'] && (user_selections['kname'] == partition.kname) rescue false),class: 'format') %> </label></td>
-									</tr>
-									<%
-									end
-									end %>
-								</tbody>
-							</table>
-
-						</div></td>
-					</tr>
 					<% end %>
 				</tbody>
 
