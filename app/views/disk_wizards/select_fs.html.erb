@@ -1,60 +1,66 @@
 <script type="text/javascript">
-	google.load("visualization", "1", {
+google.load("visualization", "1", {
 packages : ["corechart"]
 });
 google.setOnLoadCallback(drawChart);
 function drawChart() {
 var data = google.visualization.arrayToDataTable([
-['disk', 'sda1', 'sda2',{ role: 'tooltip' },{ role: 'style' },{ role: 'annotation' }, 'sda3',{ role: 'tooltip' },{ role: 'style' },'sda4',{ role: 'style' },{ role: 'annotation' } ],
-['sda', <%= @test %>
-	, 24,'middle','stroke-color: #775588; stroke-width: 2; fill-color: #AEB404; fill-opacity: 0.9',"wewsdsf",20, 'Lahooola','stroke-color: #775588; stroke-opacity: 0.9; stroke-width: 2; fill-color: #AEB404; fill-opacity: 0.9',20,'stroke-color: #775588; stroke-opacity: 0.9; stroke-width: 2; fill-color: #424242; fill-opacity: 0.4','oks'],
-	]);
+['disk',
+'sda1',{ role: 'tooltip' },{ role: 'style' },{ role: 'annotation' },
+'sda2',{ role: 'tooltip' },{ role: 'style' },{ role: 'annotation' },
+'Free Space',{ role: 'tooltip' },{ role: 'style' }, { role: 'annotation' },
+'sda4',{ role: 'tooltip' },{ role: 'style' },{ role: 'annotation' }
+],
+['sda',
+12,'Primary','stroke-color: #00FFBB; stroke-width: 5;fill-opacity: 0.9',"/dev/sda1 12GB",
+24,'Logical','stroke-color: #775588; stroke-width: 5; fill-opacity: 0.9',"/dev/sda1 24GB",
+5,"Logical",'stroke-color: #775588; stroke-opacity: 0.9; stroke-width: 5; fill-opacity: 0.4','Free space 5GB',
+20, 'Logical','stroke-color: #775588; stroke-opacity: 0.9; stroke-width: 5; fill-opacity: 0.9',"/dev/sda3 20GB"],
+]);
 
-	var options = {
-		annotations : {
-			textStyle : {
-				fontName : 'Times-Roman',
-				fontSize : 14,
-			}
-		},
-		width : '100%',
-		backgroundColor : '#F2F2F2',
-		height : 100,
-		legend : {
-			position : 'top',
-			maxLines : 10
-		},
-		bar : {
-			groupWidth : '100%'
-		},
-		isStacked : true,
-		enableInteractivity : true,
-		hAxis : {
-			viewWindowMode : 'maximized',
-			gridlines : {
-				color : 'transparent'
-			},
-			format : '#GB'
-		},
-		chartArea : {
-			width : '95%'
-		},
-		legend : {
-			position : 'top',
-			alignment : 'center'
-		},
-		enableInteractivity : true,
-	};
+var options = {
+annotations : {
+textStyle : {
+fontName : 'Times-Roman',
+fontSize : 14,
+}
+},
+width : '100%',
+backgroundColor : '#F2F2F2',
+height : 100,
+legend : {
+position : 'top',
+maxLines : 10
+},
+bar : {
+groupWidth : '100%'
+},
+isStacked : true,
+enableInteractivity : true,
+hAxis : {
+viewWindowMode : 'maximized',
+gridlines : {
+color : 'transparent'
+},
+format : '#GB'
+},
+chartArea : {
+width : '95%'
+},
+legend : {
+position : 'top',
+alignment : 'center'
+},
+};
 
-	var chart = new google.visualization.BarChart(document.getElementById('disk_stats'));
-	google.visualization.events.addListener(chart, 'select', function() {
-		var selection = chart.getSelection();
-		// alert(data.getValue(selection[0].row, 1));
-	});
-	chart.draw(data, options);
-	}
+var chart = new google.visualization.BarChart(document.getElementById('disk_stats'));
+google.visualization.events.addListener(chart, 'select', function() {
+var selection = chart.getSelection();
+// alert(data.getValue(selection[0].row, 1));
+});
+chart.draw(data, options);
+}
 </script>
-
 <div class="panel-body">
 	<div class="row">
 		<div class="well" id="disk_stats">
@@ -65,37 +71,140 @@ var data = google.visualization.arrayToDataTable([
 	</div>
 	<script>
 		function check() {
+			var selected_partition = $("#partition").attr("value");
+			if (typeof  selected_partition === 'undefined'){
+				alert("No partition selected! on device (" + $("#model").attr('value') + ")");
+				return true;
+			}
 			if (($('input[type=radio]:checked').size() > 0)) {
 				return true;
 			}
 			alert("Please select a file system type!");
 			return false;
 		}
+
+		$(function() {
+			$('.format').change(function() {
+	            var $this = $(this);
+				// $this will contain a reference to the checkbox
+				if ($this.is(':checked')) {
+					$('#fs_selector').slideDown();
+				} else {
+					$('#fs_selector').slideUp();
+				}
+			});
+		});
+
+		$(function() {
+		    var rows = $('tr:not(:first) td:not(:last-child)');
+		    rows.on('click', function(e) {
+		        var row = $(this);
+				row = row.closest('tr');
+
+		        if (row.hasClass('info')) {
+		            row.removeClass('info');
+		            $("#proceed").html("Skip");
+		            $("#partition").removeAttr("value");
+		            $('input.format').not(this).prop('checked', false);
+		        } else {
+		            rows.closest('tr').removeClass('info');
+		            $('input.format').not(this).prop('checked', false);
+		            row.addClass('info');
+		            $("#proceed").html("Next");
+		            var kname = row.attr("kname");
+		            $("#partition").attr("value",kname);
+		        }
+
+		    });
+		    $(document).bind('selectstart dragstart', function(e) {
+		        e.preventDefault(); return false;
+		    });
+
+		});
 	</script>
 	<%= form_tag(defined?(disk_wizards_engine) ? disk_wizards_engine.manage_path : manage_path ,{method: "POST",id:"select_fs", onsubmit: "return check()"}) %>
 	<%= hidden_field_tag 'device', @selected_disk.kname %>
-	<div class="row">
-		<div class="col-md-4 col-md-offset-1">
-			<% "*****************#{@selected_disk}"%>
-
-			<%=
- pie_chart({"Size: #{number_to_human_size @selected_disk.size}" => (@selected_disk.size)},\
-			library: {legend: {position: 'top'}, \
-			is3D: true, \
-			pieSliceText: 'percentage', \
-			tooltip: {text: 'percentage' }, \
-			width: 400, \
-			slices: [{color: '#A44585'},{color: '#00B5F0'}] \
-			})
-%>
-			<div class="has-success has-feedback">
-				<label class="control-label" for="inputSuccess4">Drive selected</label>
-				<input type="text" class="form-control" value="<%= @selected_disk.kind_of?(Disk) ? @selected_disk.model : @selected_disk.disk.model %>" disabled>
-				<span class="glyphicon glyphicon-ok form-control-feedback"></span>
-			</div>
-
+	<%= hidden_field_tag 'model', @selected_disk.model %>
+	<%= hidden_field_tag 'partition', nil %>
+	<div class="row col-md-10 col-md-offset-1" >
+		<div id="contextMenu" >
+			<ul class="dropdown-menu" role="menu">
+				<li>
+					<a tabindex="-1" href="#">New</a>
+				</li>
+				<li>
+					<a tabindex="-1" href="#">Delete</a>
+				</li>
+				<li class="divider"></li>
+				<li>
+					<a tabindex="-1" href="#">Resize/Move</a>
+				</li>
+				<li class="divider"></li>
+				<li>
+					<a tabindex="-1" href="#">Copy</a>
+				</li>
+				<li>
+					<a tabindex="-1" href="#">Past</a>
+				</li>
+				<li class="divider"></li>
+				<li class="dropdown-submenu">
+					<a tabindex="-1" href="#">Format to </a>
+					<ul class="dropdown-menu">
+						<li>
+							<a tabindex="-1" href="#">NTFS</a>
+						</li>
+						<li>
+							<a tabindex="-1" href="#">Ext4</a>
+						</li>
+						<li>
+							<a tabindex="-1" href="#">Ext3</a>
+						</li>
+						<li>
+							<a tabindex="-1" href="#">Fat32</a>
+						</li>
+					</ul>
+				</li>
+			</ul>
 		</div>
-		<div class="col-md-5 col-md-offset-1">
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th style="text-align: center;">Mount</th>
+					<th style="text-align: center;">Label</th>
+					<th style="text-align: center;">FStype</th>
+					<th style="text-align: center;">Size</th>
+					<th style="text-align: center;">Format</th>
+				</tr>
+			</thead>
+			<tbody>
+				<!--
+				device['partitions'] reffrence
+				"TYPE"=>"part", "SIZE"=>"104857600", "KNAME"=>"sda1", "MOUNTPOINT"=>nil, "FSTYPE"=>"devtmpfs"
+				-->
+
+				<%
+				device = @selected_disk
+				unless device.partitions.blank?
+				for partition in device.partitions %>
+				<tr style="position: relative;cursor: pointer;" kname=<%= partition.kname %> data-toggle="context" data-target="#contextMenu" class=<%= !!(user_selections['kname'] == partition.kname rescue false) ? "info context" : "context" %> >
+					<td data-toggle="tooltip" title="Mount point"> <%= partition.mountpoint || "No mount point" %> </td>
+					<td data-toggle="tooltip" title="Disk name"> <%= partition.label %> </td>
+					<td><% if partition.fstype.nil? %> <span class='glyphicon glyphicon-warning-sign'></span> Unknown
+					<% else %>
+					<%= partition.fstype %>
+					<% end %> </td>
+
+					<td data-toggle="tooltip" title="Total size" > <%= number_to_human_size partition.size %> </td>
+					<td><label> <%= check_box_tag(:format,1,!!(user_selections['format'] && (user_selections['kname'] == partition.kname) rescue false),class: 'format') %> </label></td>
+				</tr>
+				<%
+				end
+				end %>
+			</tbody>
+		</table>
+	</div>
+	<div class="row" >
+		<div id="fs_selector" class="col-md-5 col-md-offset-4" style="display: none;">
 
 			<div class="well">
 
@@ -134,7 +243,6 @@ var data = google.visualization.arrayToDataTable([
 
 	</div>
 	<div class="row">
-
 		<div class="row">
 			<ul class="pager">
 				<li class="previous">
@@ -147,7 +255,7 @@ var data = google.visualization.arrayToDataTable([
 					Next &rarr;
 					<% end %>
 					<%= link_to '#', :onclick => "$('#select_fs').submit()" do %>
-					Next &rarr;
+					<span id="proceed">Skip</span> &rarr;
 					<% end %>
 				</li>
 			</ul>
