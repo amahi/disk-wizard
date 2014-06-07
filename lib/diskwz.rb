@@ -75,12 +75,11 @@ class Diskwz
     end
 
     def find kname
-      kname =~ /[0-9]\z/ ? partition = true : partition = false
+      partition = kname =~ /[0-9]\z/ ? true : false
       if DEBUG_MODE or Platform.ubuntu? or Platform.fedora?
         command = "lsblk"
         params = "/dev/#{kname} -bPo MODEL,TYPE,SIZE,KNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM"
       end
-      #partition
       lsblk = DiskCommand.new command, params
       lsblk.execute
       raise "Command execution error: #{lsblk.stderr.read}" if not lsblk.success?
@@ -98,8 +97,8 @@ class Diskwz
         data_hash['rm'] = data_hash['rm'].to_i
         if data_hash['type'] == "disk"
           data_hash.except!('uuid','label','mountpoint','fstype')
-        disk = data_hash
-        next
+          disk = data_hash
+          next
         end
         if data_hash['type'] == "part"
           data_hash.except!('model')
@@ -204,9 +203,9 @@ class Diskwz
 
     def get_kname disk
       if disk.kind_of? Disk or disk.kind_of? Partition
-      kname = disk.kname
+        kname = disk.kname
       else
-      kname = disk
+        kname = disk
       end
       return kname
     end
