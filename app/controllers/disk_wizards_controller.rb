@@ -23,8 +23,6 @@ class DiskWizardsController < ApplicationController
   end
 
   def manage_disk
-    # render text: params
-    # return false
     device = params[:device]
     format = params[:format]
     partition = params[:partition]
@@ -33,7 +31,7 @@ class DiskWizardsController < ApplicationController
       redirect_to defined?(disk_wizards_engine) ? disk_wizards_engine.file_system_path : file_system_path , :flash => { :error => "You should select a filesystem to continue with the Disk-Wizard" }
       return false
     end
-    self.user_selections = {fs_type: fs_type,format: format}
+    self.user_selections = {fs_type: fs_type,format: format,kname: partition}
     # render text: "params = #{params} and  user_selections #{user_selections}"
   end
 
@@ -78,7 +76,8 @@ class DiskWizardsController < ApplicationController
   end
 
   def done
-
+    flash[:success] = "All disks operations successfully completed!"
+    @user_selections = self.user_selections
   end
 
   def user_selections
