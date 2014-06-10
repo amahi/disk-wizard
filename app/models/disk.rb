@@ -19,7 +19,7 @@ class Disk #< ActiveRecord::Base
       instance_variable_set("@#{key}", value) unless value.nil?
     end
   end
-  
+
   def self.all
     # return array of Disk objects
     disks = []
@@ -57,7 +57,7 @@ class Disk #< ActiveRecord::Base
     end
     return unmounted_devices
   end
-  
+
   def Disk.progress
     current_progress = Setting.find_by_kind_and_name('disk_wizard', 'operation_progress')
     return 0 unless current_progress
@@ -123,11 +123,19 @@ class Disk #< ActiveRecord::Base
     Diskwz.umount self
   end
 
+  # Delete all excisting partitions and create one partition from entire device/disk
+  def full_format fstype, label = nil
+    delete_all_partitions unless partitions.blank?
+    Diskwz.create_partition self, 1, -1
+    new_partition = Disk.find self.kname + "1"
+    new_partition.format fstype
+  end
+
   #TODO: extend to create new partitions on unallocated spaces
   def create_partition size = nil, type = Partition.types[:primary]
-    new_partition_kname = Diskwz.create_partition self
-    new_partition = Disk.find new_partition_kname
-    return new_partition
+    new_partition_kname = Diskwz.create_partition self, size[:start_block], size[:end_block]
+    partitions = Disk.find(self).partitions
+    return partitions.last
   end
 
   def create_partition_table
@@ -138,33 +146,24 @@ class Disk #< ActiveRecord::Base
     raise "#{__method__} method not implimented !"
 
   end
-  
+
   def format_job params_hash
     puts "DEBUG:********** format_job params_hash #{params_hash}"
     new_fstype = params_hash[:fs_type]
     Disk.progress = 10
     puts "DEBUG:*********** umount @path umount #{self.path}"
     #TODO: check the disk size and pass the relevent partition table type (i.e. if device size >= 3TB create GPT table else MSDOS(MBR))
-    create_partition_table if not partition_table
-    delete_all_partitions if not partitions.blank?
-    partition = create_partition
-    partition.format new_fstype
-    partition.mount params_hash['label']
+    create_partition_table unless partition_table
+    full_format new_fstype, params_hash['label']
     Disk.progress = 40
   end
 
   def mount_job params_hash
     Disk.progress = 60
     kname = @kname
-    mount_point = "/media/#{kname}" # in production this path is /var/hda/files/drives/drive#
-    puts "DEBUG:********** options_job.params_hash #{params_hash}"
-    Command.new("mkdir #{mount_point}").run_now
-    puts "DEBUG:********** Directory created #{mount_point}"
-    fstab_object = Fstab.new
-    puts "DEBUG:********** fstab_object created #{fstab_object}"
-    puts "DEBUG:********** fstab_object.add_fs path = /dev/#{kname}"
-    fstab_object.add_fs("/dev/#{kname}",mount_point,'auto','auto,rw,exec',0,0)
-    Command.new("mount -a").run_now
+    label = params_hash['label'] || kname
+    new_partition = Disk.find kname + "1"
+    new_partition.mount label
     Disk.progress = 80
   end
 
