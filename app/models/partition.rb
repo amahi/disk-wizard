@@ -60,7 +60,6 @@ class Partition
   def mount label
     label ||= self.kname
     mount_point = File.join "/var/hda/files/drives/", label
-    FileUtils.mkdir_p mount_point unless File.directory?(mount_point)
     Diskwz.mount mount_point, self
   end
 

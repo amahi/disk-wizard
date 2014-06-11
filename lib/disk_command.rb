@@ -4,12 +4,12 @@
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License v3
 # (29 June 2007), as published in the COPYING file.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # file COPYING for more details.
-# 
+#
 # You should have received a copy of the GNU General Public
 # License along with this program; if not, write to the Amahi
 # team at http://www.amahi.org/ under "Contact Us."
@@ -23,11 +23,10 @@ class DiskCommand
   # Initialize DiskCommand object
   # == Parameters:
   #     command
-  #     parameters Default set to `nil` to allow execution of commands, with no arguments i.e. pwd 
+  #     parameters Default set to `nil` to allow execution of commands, with no arguments i.e. pwd
   def initialize command, parameters = nil
     @command = command
     @parameters = parameters
-    
   end
 
   # Execute the command with assigned parameters when initializing the object
@@ -60,19 +59,19 @@ class DiskCommand
     @result = @stdout.read
     @success = @wait_thr.value.success?
   end
-  
+
   def success?
     @success
   end
-  
+
   def result
     return @result
   end
   private
-  
+
   def check root_folder
     wrapper = File.join(root_folder,"/elevated/dsk-wz.sh")
     raise "Wrapper script does not appear to be available!" unless File.file?(wrapper)
   end
-  
+
 end

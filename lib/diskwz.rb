@@ -126,7 +126,7 @@ class Diskwz
           #TODO: Need to test for all the types of partition tables
           table_type = line.match(/^Partition Table:(.*)/i).captures[0].strip
           return table_type
-        end    
+        end
       end
     end
 
@@ -136,14 +136,17 @@ class Diskwz
       command = "umount"
       params = " -l /dev/#{kname}"
       umount = DiskCommand.new command,params
+      #TODO: This should be a none-blocking call, until unmount the disk/device successfully, can't proceed with other works
       umount.execute
       raise "Command execution error: #{umount.stderr.read}" if not umount.success?
     end
-    
+
     def mount mount_point, disk
       fstab = Fstab.new
       fstab.add_fs(disk.path,mount_point,'auto','auto,rw,exec',0,0)
-      
+
+      create_directory mount_point unless File.directory?(mount_point)
+
       #remount all
       command = "mount"
       params = "#{disk.path} #{mount_point}"
@@ -153,34 +156,25 @@ class Diskwz
     end
 
     def format disk, fstype
-      fstype = "vfat" if fstype == "fat32"
-      fstype == "ntfs" ? quick_format = "-f" : quick_format = nil
+      fstype = "vfat" if fstype == "fat32" #TODO: mkfs.vfat: invalid option -- 'q'
+      quick_format = (fstype == "ntfs") ? "-f" : nil
       command = "mkfs.#{fstype} "
       params = "-q #{quick_format} -F #{disk.path}" #-F parameter to ignore warning and -q for quiet execution
-      
+
       mkfs = DiskCommand.new command, params
       mkfs.execute
       raise "Command execution error: #{mkfs.stderr.read}" if not mkfs.success?
     end
-    
-    #TODO: For no this method only support new devices
-    def create_partition device
+
+    #TODO: Need more testing
+    def create_partition device, start_block, end_block
       command = 'parted'
-      params = "-s -a optimal #{device.path} mkpart primary 1 -- -1"
+      params = "-s -a optimal #{device.path} mkpart primary #{start_block} -- #{end_block}"
       parted = DiskCommand.new command, params
       parted.execute
       raise "Command execution error: #{parted.stderr.read}" if not parted.success?
-      new_partition_kname = device.kname + "1"
-      return new_partition_kname
     end
-    
-    def create_mount_point mount_point
-      command = 'mkdir'
-      params = "-p #{mount_point}"
-      mkdir = DiskCommand.new command, params
-      mkdir.execute
-      raise "Command execution error: #{mkdir.stderr.read}" if not mkdir.success?
-    end
+
 
     def create_partition_table device,type = 'msdos'
       command = 'parted'
@@ -208,6 +202,14 @@ class Diskwz
         kname = disk
       end
       return kname
+    end
+
+    def create_directory location
+      command = "mkdir"
+      params = "-p -m 757 #{location}"
+      mkdir = DiskCommand.new command, params
+      mkdir.execute
+      raise "Command execution error: #{mkdir.stderr.read}" if not mkdir.success?
     end
 
   end
