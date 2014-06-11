@@ -101,15 +101,28 @@ chart.draw(data, options);
 		        var row = $(this);
 				row = row.closest('tr');
 
-		        if (row.hasClass('info')) {
-		            row.removeClass('info');
+				if (row.hasClass('info') || row.hasClass("danger")) {
+					if(row.hasClass("danger")){
+						row.removeClass('danger');
+						row.addClass('warning');
+					}
+					else{
+						row.removeClass('info');
+					}
 		            $("#proceed").html("Skip");
 		            $("#partition").removeAttr("value");
 		            $('input.format').not(this).prop('checked', false);
 		        } else {
-		            rows.closest('tr').removeClass('info');
-		            $('input.format').not(this).prop('checked', false);
-		            row.addClass('info');
+					if(row.hasClass("warning")){
+						rows.closest('tr').removeClass('info');
+						row.addClass('danger');
+					}
+					else{
+						rows.closest('tr').removeClass('danger');
+						rows.closest('tr').removeClass('info');
+						row.addClass('info');
+					}
+					$('input.format').not(this).prop('checked', false);
 		            $("#proceed").html("Next");
 		            var kname = row.attr("kname");
 		            $("#partition").attr("value",kname);
@@ -197,9 +210,14 @@ chart.draw(data, options);
 					<td data-toggle="tooltip" title="Total size" > <%= number_to_human_size partition.size %> </td>
 					<td><label> <%= check_box_tag(:format,1,!!(user_selections['format'] && (user_selections['kname'] == partition.kname) rescue false),class: 'format') %> </label></td>
 				</tr>
-				<%
-				end
-				end %>
+				<% end %>
+				<% end %>
+				<tr style="position: relative;cursor: pointer;" class=<%= !!(user_selections['format'] && (user_selections['partition'] == device.kname) rescue false) ? "danger" : "warning" %> kname=<%= device.kname %> >
+					<td colspan="4">
+						Format entire disk
+					</td>
+					<td><label> <%= check_box_tag(:format,1,!!(user_selections['format'] && (user_selections['partition'] == device.kname) rescue false),class: 'format') %> </label></td>
+				</tr>
 			</tbody>
 		</table>
 	</div>

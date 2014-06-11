@@ -1,3 +1,18 @@
+<script>
+		$(function() {
+		    var rows = $('tr:not(:first)');
+		    rows.on('click', function(e) {
+		        var row = $(this);
+				$(this).find('td input:radio').prop('checked', true);
+				rows.removeClass('info');
+				row.addClass('info');
+		    });
+		    $(document).bind('selectstart dragstart', function(e) {
+		        e.preventDefault(); return false;
+		    });
+
+		});
+</script>
 <div class="panel-body">
 	<div class="row">
 		<% "*****************#{@new_disks}"%>
@@ -10,13 +25,12 @@
 						<th class="text-center">Model</th>
 						<th class="text-center">Path</th>
 						<th class="text-center">Size</th>
-						<th class="text-center">Format</th>
 					</tr>
 				</thead>
 				<tbody>
 					<%= form_tag(defined?(disk_wizards_engine) ? disk_wizards_engine.file_system_path : file_system_path ,{method: "POST",id:"select_device"}) %>
 					<% for device in @new_disks%>
-					<tr <% unless device.partitions.blank? %> data-toggle="collapse" data-target= <%= "."+device.kname %> <% end %> class="accordion-toggle" style = "cursor: pointer;">
+					<tr class=<%= !!((user_selections['kname'] == device.kname) rescue false) ? "info" : "" %> class="accordion-toggle" style = "cursor: pointer;">
 						<td> <%= radio_button_tag(:device, device.kname,!!((user_selections['kname'] == device.kname) rescue false)) %> </td>
 						<td><%= device.model || "N/A"%>
 						<% if device.removable? %>
@@ -26,7 +40,6 @@
 						<% end %> </td>
 						<td><%= "/dev/#{device.kname}"%></td>
 						<td><%= number_to_human_size device.size %></td>
-						<td><label> <%= check_box_tag(:format,1,!!(user_selections['format'] && (user_selections['kname'] == device.kname) rescue false), class: 'format') %> </label></td>
 					</tr>
 					<% end %>
 				</tbody>
