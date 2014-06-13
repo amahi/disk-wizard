@@ -2,5 +2,6 @@
 name: DiskWizard
 # class to be mounted
 class: DiskWizards
+kind: subtab
 # root url where this plugin will be mounted
 url: /tab/disk_wizards
