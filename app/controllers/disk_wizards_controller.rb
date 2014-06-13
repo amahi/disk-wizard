@@ -23,7 +23,7 @@ class DiskWizardsController < ApplicationController
     partition = params[:partition]
     fs_type = params[:fs_type]
     if (not(fs_type or user_selections['fs_type']) and not user_selections['kname'])
-      redirect_to defined?(disk_wizards_engine) ? disk_wizards_engine.file_system_path : file_system_path , :flash => { :error => "You should select a filesystem to continue with the Disk-Wizard" }
+      redirect_to defined?(disk_wizards_engine) ? disk_wizards_engine.file_system_path : file_system_path , :flash => { :error => "Please select a filesystem type to continue." }
       return false
     end
     self.user_selections = {fs_type: fs_type,format: format,kname: partition}
@@ -70,7 +70,7 @@ class DiskWizardsController < ApplicationController
   end
 
   def done
-    flash[:success] = "All disks operations successfully completed!"
+    flash[:success] = "All disks operations has been completed successfully!"
     @user_selections = self.user_selections
   end
 
