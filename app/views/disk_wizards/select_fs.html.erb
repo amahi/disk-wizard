@@ -62,18 +62,18 @@ chart.draw(data, options);
 }
 </script>
 <div class="panel-body">
-	<div class="row">
-		<div class="well" id="disk_stats">
-			<p class="bg-danger">
-				Something went wrong!
-			</p>
-		</div>
+	<!-- div class="row">
+	<div class="well" id="disk_stats">
+	<p class="bg-danger">
+	Something went wrong!
+	</p>
 	</div>
+	</div -->
 	<script>
 		function check() {
 			var selected_partition = $("#partition").attr("value");
-			if (typeof  selected_partition === 'undefined'){
-				alert("No partition selected! on device (" + $("#model").attr('value') + ")");
+			if ( typeof selected_partition === 'undefined') {
+				alert("No partition selected! Entire device (" + $("#model").attr('value') + ") automatically selected." );
 				return true;
 			}
 			if (($('input[type=radio]:checked').size() > 0)) {
@@ -85,7 +85,7 @@ chart.draw(data, options);
 
 		$(function() {
 			$('.format').change(function() {
-	            var $this = $(this);
+				var $this = $(this);
 				// $this will contain a reference to the checkbox
 				if ($this.is(':checked')) {
 					$('#fs_selector').slideDown();
@@ -96,42 +96,41 @@ chart.draw(data, options);
 		});
 
 		$(function() {
-		    var rows = $('tr:not(:first) td:not(:last-child)');
-		    rows.on('click', function(e) {
-		        var row = $(this);
+			var rows = $('tr:not(:first) td:not(:last-child)');
+			rows.on('click', function(e) {
+				var row = $(this);
 				row = row.closest('tr');
 
 				if (row.hasClass('info') || row.hasClass("danger")) {
-					if(row.hasClass("danger")){
+					if (row.hasClass("danger")) {
 						row.removeClass('danger');
 						row.addClass('warning');
-					}
-					else{
+					} else {
 						row.removeClass('info');
 					}
-		            $("#proceed").html("Skip");
-		            $("#partition").removeAttr("value");
-		            $('input.format').not(this).prop('checked', false);
-		        } else {
-					if(row.hasClass("warning")){
+					$("#proceed").html("Skip");
+					$("#partition").removeAttr("value");
+					$('input.format').not(this).prop('checked', false);
+				} else {
+					if (row.hasClass("warning")) {
 						rows.closest('tr').removeClass('info');
 						row.addClass('danger');
-					}
-					else{
+					} else {
 						rows.closest('tr').removeClass('danger');
 						rows.closest('tr').removeClass('info');
 						row.addClass('info');
 					}
 					$('input.format').not(this).prop('checked', false);
-		            $("#proceed").html("Next");
-		            var kname = row.attr("kname");
-		            $("#partition").attr("value",kname);
-		        }
+					$("#proceed").html("Next");
+					var kname = row.attr("kname");
+					$("#partition").attr("value", kname);
+				}
 
-		    });
-		    $(document).bind('selectstart dragstart', function(e) {
-		        e.preventDefault(); return false;
-		    });
+			});
+			$(document).bind('selectstart dragstart', function(e) {
+				e.preventDefault();
+				return false;
+			});
 
 		});
 	</script>
@@ -179,13 +178,26 @@ chart.draw(data, options);
 				</li>
 			</ul>
 		</div>
-		<table class="table table-hover">
+		<style>
+			.settings-table {
+				margin: 0 auto;
+				border: 1px solid #e8e8e8;
+				-moz-border-radius: 5px;
+				-webkit-border-radius: 5px;
+				border-radius: 5px;
+			}
+		</style>
+		<table class="settings table table-hover">
 			<thead>
 				<tr>
+					<%
+					device = @selected_disk
+					unless device.partitions.blank? %>
 					<th style="text-align: center;">Mount</th>
 					<th style="text-align: center;">Label</th>
 					<th style="text-align: center;">FStype</th>
 					<th style="text-align: center;">Size</th>
+					<% end %>
 					<th style="text-align: center;">Format</th>
 				</tr>
 			</thead>
@@ -196,7 +208,6 @@ chart.draw(data, options);
 				-->
 
 				<%
-				device = @selected_disk
 				unless device.partitions.blank?
 				for partition in device.partitions %>
 				<tr style="position: relative;cursor: pointer;" kname=<%= partition.kname %> data-toggle="context" data-target="#contextMenu" class=<%= !!(user_selections['kname'] == partition.kname rescue false) ? "info context" : "context" %> >
@@ -213,9 +224,7 @@ chart.draw(data, options);
 				<% end %>
 				<% end %>
 				<tr style="position: relative;cursor: pointer;" class=<%= !!(user_selections['format'] && (user_selections['partition'] == device.kname) rescue false) ? "danger" : "warning" %> kname=<%= device.kname %> >
-					<td colspan="4">
-						Format entire disk
-					</td>
+					<td colspan="4"> Format entire disk </td>
 					<td><label> <%= check_box_tag(:format,1,!!(user_selections['format'] && (user_selections['partition'] == device.kname) rescue false),class: 'format') %> </label></td>
 				</tr>
 			</tbody>

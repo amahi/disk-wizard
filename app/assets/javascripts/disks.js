@@ -9,5 +9,22 @@ $(document).ready(function() {
 	});
 	$('input.format').on('change', function() {
 		$('input.format').not(this).prop('checked', false);
+		var rows = $('tr:not(:first) td:not(:last-child)');
+
+		var row = $(this).closest('tr');
+
+		if (row.hasClass("warning")) {
+			rows.closest('tr').removeClass('info');
+			row.addClass('danger');
+		} else {
+			rows.closest('tr').removeClass('danger');
+			rows.closest('tr').removeClass('info');
+			row.addClass('info');
+		}
+		$('input.format').not(this).prop('checked', false);
+		$("#proceed").html("Next");
+		var kname = row.attr("kname");
+		$("#partition").attr("value", kname);
+
 	});
 });
