@@ -73,8 +73,8 @@ chart.draw(data, options);
 		function check() {
 			var selected_partition = $("#partition").attr("value");
 			if ( typeof selected_partition === 'undefined') {
-				alert("No partition selected! Entire device (" + $("#model").attr('value') + ") automatically selected." );
-				return true;
+				alert("No partition selected! Entire device (" + $("#model").attr('value') + ") automatically selected.");
+				return false;
 			}
 			if (($('input[type=radio]:checked').size() > 0)) {
 				return true;
@@ -211,14 +211,14 @@ chart.draw(data, options);
 				unless device.partitions.blank?
 				for partition in device.partitions %>
 				<tr style="position: relative;cursor: pointer;" kname=<%= partition.kname %> data-toggle="context" data-target="#contextMenu" class=<%= !!(user_selections['kname'] == partition.kname rescue false) ? "info context" : "context" %> >
-					<td data-toggle="tooltip" title="Mount point"> <%= partition.mountpoint || "No mount point" %> </td>
-					<td data-toggle="tooltip" title="Disk name"> <%= partition.label %> </td>
+					<td title="Mount point"> <%= partition.mountpoint || "No mount point" %> </td>
+					<td title="Disk name"> <%= partition.label %> </td>
 					<td><% if partition.fstype.nil? %> <span class='glyphicon glyphicon-warning-sign'></span> Unknown
 					<% else %>
 					<%= partition.fstype %>
 					<% end %> </td>
 
-					<td data-toggle="tooltip" title="Total size" > <%= number_to_human_size partition.size %> </td>
+					<td title="Total size" > <%= number_to_human_size partition.size %> </td>
 					<td><label> <%= check_box_tag(:format,1,!!(user_selections['format'] && (user_selections['kname'] == partition.kname) rescue false),class: 'format') %> </label></td>
 				</tr>
 				<% end %>
@@ -241,7 +241,7 @@ chart.draw(data, options);
 
 					</li>
 					<li class="list-group-item">
-						<label> <%= radio_button_tag(:fs_type, "ext4",!!(user_selections && user_selections['fs_type'] == "ext4")) %>
+						<label> <%= radio_button_tag(:fs_type, "ext4",true) %>
 							Ext4 </label>
 
 					</li>
@@ -269,25 +269,13 @@ chart.draw(data, options);
 		</div>
 
 	</div>
-	<div class="row">
-		<div class="row">
-			<ul class="pager">
-				<li class="previous">
-					<%= link_to(defined?(disk_wizards_engine) ? disk_wizards_engine.select_path : select_path) do %>
-					&larr; Back
-					<% end %>
-				</li>
-				<li class="next">
-					<% link_to(defined?(disk_wizards_engine) ? disk_wizards_engine.manage_path : manage_path) do %>
-					Next &rarr;
-					<% end %>
-					<%= link_to '#', :onclick => "$('#select_fs').submit()" do %>
-					<span id="proceed">Skip</span> &rarr;
-					<% end %>
-				</li>
-			</ul>
-
-		</div>
+	<div class="row text-left">
+		<%= link_to(defined?(disk_wizards_engine) ? disk_wizards_engine.select_path : select_path, class: "btn btn-default") do %>
+		&larr; Back
+		<% end %>
+		<%= link_to '#', :onclick => "$('#select_fs').submit()", style: "float: right;", class: "btn btn-success" do %>
+		<span id="proceed">Skip</span> &rarr;
+		<% end %>
 	</div>
 	</form>
 </div>

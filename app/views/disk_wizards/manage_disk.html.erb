@@ -6,51 +6,29 @@
 		<div class="col-md-5 col-md-offset-3 well">
 			<ul class="list-group">
 				<li class="list-group-item list-group-item-success">
-					<h5>What would you like to do with this new drive</h5>
+					<h5>What would you like to do?</h5>
 
 				</li>
 				<li class="list-group-item">
 					<div class="checkbox">
-						<label>
-							<%= check_box_tag('option[]',1,!!((user_selections['option'].include? '1') rescue false)) %>
+						<label> <%= check_box_tag('option[]',1,!!((user_selections['option'].include? '1') rescue false)) %>
 							<div class="alert alert-info">
 								Mount this drive automatically, Your drive will be available in /var/hda/files/drives/drive#
 								You will then be able to <a href="#" class="alert-link">create new share</a> in this directory to use this drive
 
 							</div> </label>
 					</div>
-
-				</li>
-
-				<li class="list-group-item">
-
-					<div class="checkbox">
-						<label>
-							<%= check_box_tag('option[]',2,!!((user_selections['option'].include? '2') rescue false)) %>
-							<div class="alert alert-info">
-								[Experimental] Add it to your <a href="#" class="alert-link">shared stroage pool</a>
-
-							</div> </label>
-					</div>
-
 				</li>
 
 			</ul>
 		</div>
 	</div>
-	<div class="row">
-		<ul class="pager">
-			<li class="previous">
-				<%= link_to(defined?(disk_wizards_engine) ? disk_wizards_engine.file_system_path : file_system_path) do %>
-				&larr; Back
-				<% end %>
-			</li>
-			<li class="next">
-				<%= link_to '#', :onclick => "$('#options').submit()" do %>
-				Next &rarr;
-				<% end %>
-			</li>
-		</ul>
-
+	<div class="row text-left">
+		<%= link_to(defined?(disk_wizards_engine) ? disk_wizards_engine.file_system_path : file_system_path, class: "btn btn-default") do %>
+		&larr; Back
+		<% end %>
+		<%= link_to '#', :onclick => "$('#options').submit()", style: "float: right;", class: "btn btn-success" do %>
+		Next &rarr;
+		<% end %>
 	</div>
 </div>

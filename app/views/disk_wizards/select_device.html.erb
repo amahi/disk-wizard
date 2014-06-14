@@ -12,55 +12,49 @@
 			return false;
 		});
 
-	});
+	}); 
 </script>
 <div class="panel-body">
+	<% "*****************#{@new_disks}"%>
+
 	<div class="row">
-		<% "*****************#{@new_disks}"%>
+		<table class="table table-hover">
+			<thead>
+				<tr data-toggle="collapse" data-target="#demo1" class="accordion-toggle" style="cursor: pointer" >
+					<th class="text-center">Select</th>
+					<th class="text-center">Model</th>
+					<th class="text-center">Path</th>
+					<th class="text-center">Size</th>
+				</tr>
+			</thead>
+			<tbody>
+				<%= form_tag(defined?(disk_wizards_engine) ? disk_wizards_engine.file_system_path : file_system_path ,{method: "POST",id:"select_device"}) %>
+				<% for device in @new_disks%>
+				<tr class=<%= !!((user_selections['kname'] == device.kname) rescue false) ? "info" : "" %> class="accordion-toggle" style = "cursor: pointer;">
+					<td> <%= radio_button_tag(:device, device.kname,!!((user_selections['kname'] == device.kname) rescue false)) %> </td>
+					<td><%= device.model || "N/A"%>
+					<% if device.removable? %>
+					&nbsp; <span data-toggle="tooltip" title="Removable/External Device" style="color: red" class="glyphicon glyphicon-floppy-disk"></span> <% elsif device.partition_table.blank? %>
+					&nbsp; <span data-toggle="tooltip" title="New Device(No Partition Table)" style="color: blue" class="glyphicon glyphicon-star"></span> <% end %> </td>
+					<td><%= "/dev/#{device.kname}"%></td>
+					<td><%= number_to_human_size device.size %></td>
+				</tr>
+				<% end %>
+			</tbody>
 
-		<div class="">
-			<table class="table table-hover">
-				<thead>
-					<tr data-toggle="collapse" data-target="#demo1" class="accordion-toggle" style="cursor: pointer" >
-						<th class="text-center">Select</th>
-						<th class="text-center">Model</th>
-						<th class="text-center">Path</th>
-						<th class="text-center">Size</th>
-					</tr>
-				</thead>
-				<tbody>
-					<%= form_tag(defined?(disk_wizards_engine) ? disk_wizards_engine.file_system_path : file_system_path ,{method: "POST",id:"select_device"}) %>
-					<% for device in @new_disks%>
-					<tr class=<%= !!((user_selections['kname'] == device.kname) rescue false) ? "info" : "" %> class="accordion-toggle" style = "cursor: pointer;">
-						<td> <%= radio_button_tag(:device, device.kname,!!((user_selections['kname'] == device.kname) rescue false)) %> </td>
-						<td><%= device.model || "N/A"%>
-						<% if device.removable? %>
-						&nbsp; <span data-toggle="tooltip" title="Removable/External Device" style="color: red" class="glyphicon glyphicon-floppy-disk"></span> <% elsif device.partition_table.blank? %>
-						&nbsp; <span data-toggle="tooltip" title="New Device(No Partition Table)" style="color: blue" class="glyphicon glyphicon-star"></span> <% end %> </td>
-						<td><%= "/dev/#{device.kname}"%></td>
-						<td><%= number_to_human_size device.size %></td>
-					</tr>
-					<% end %>
-				</tbody>
+		</table>
+	</div>
 
-			</table>
-
-		</div>
-
-		<div class="row">
-			<ul class="pager">
-				<li class="previous disabled">
-					<a class="disabled" href="#">&larr; Back</a>
-				</li>
-				<li class="next">
-					<%= link_to '#',class: "btn btn-success",  :onclick => "$('#select_device').submit()" do %>
-					Next &rarr;
-					<% end %>
-				</li>
-			</ul>
-			</form>
-		</div>
-
+	<div class="row text-right">
+		<a style="float: left" class="btn btn-default disabled" href="#">&larr; Back</a>
+		<%= link_to '#',class: "btn btn-success",  :onclick => "$('#select_device').submit()" do %>
+		Next &rarr;
+		<% end %>
+		</form>
+	</div>
+	<br />
+	
+	<div class="row">
 		<div class="panel panel-default">
 			<div class="panel-heading">
 				<h3 class="panel-title">Disks Currently in Use</h3>
