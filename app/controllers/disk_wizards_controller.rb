@@ -11,7 +11,7 @@ class DiskWizardsController < ApplicationController
     self.user_selections = {kname: device} if device
     puts device
     if not(device and request.post?)
-      redirect_to defined?(disk_wizards_engine) ? disk_wizards_engine.select_path : select_path, :flash => { :error => "You should select a Device or a Partition to continue with the Disk-Wizard" }
+      redirect_to defined?(disk_wizards_engine) ? disk_wizards_engine.select_path : select_path, :flash => { :error => "Please select a device to continue." }
       return false
     end
     @selected_disk = Disk.find(device || user_selections['kname'])
@@ -66,7 +66,8 @@ class DiskWizardsController < ApplicationController
   end
 
   def progress
-
+    debug_mode = params[:debug]
+    self.user_selections = {debug: debug_mode}
   end
 
   def done

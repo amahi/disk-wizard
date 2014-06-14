@@ -1,3 +1,8 @@
+<script>
+	$(function() {
+		$('#debug').tooltip()
+	});
+</script>
 <div class="panel-body">
 	<%= form_tag(defined?(disk_wizards_engine) ? disk_wizards_engine.process_path : process_path,{method: "POST",id:"confirmation"}) %>
 	<%= hidden_field_tag 'device', user_selections['kname'] %>
@@ -11,43 +16,52 @@
 				is3D: true, \
 				pieSliceText: 'percentage', \
 				tooltip: {text: 'percentage' }, \
-				width: 400, \
-				animation: {duration: 1000,easing: 'out'}, \
+				chartArea: {width: '100%', height: '78%'}, \
 				slices: [{color: '#A44585'},{color: '#00B5F0'}] \
 				})
 %>
-				<div class="col-md-6 col-md-offset-4">
-					<div class="alert alert-info">
-						<%= @selected_disk.kind_of?(Disk) ? @selected_disk.model : @selected_disk.disk.model %>
-					</div>
-				</div>
-
 			</div>
 			<div class="col-md-6 col-md-offset-1">
 				<br />
+				<br />
 				<ul class="list-group">
+					<li class="list-group-item list-group-item-info text-center">
+						<%= @selected_disk.kind_of?(Disk) ? @selected_disk.model : @selected_disk.disk.model %>
+					</li>
 					<% if user_selections['format'] %>
-					<a href="#"  class="list-group-item list-group-item-info"> <span class="badge alert-danger"> <span class="glyphicon glyphicon-ok"></span> </span> Format partition/Disk </a>
-					<a href="#"  class="list-group-item"> <span class="badge alert-info"><%= user_selections['fs_type'] %></span> New Filesystem Type </a>
+					<li class="list-group-item text-left">
+						<span class="badge alert-danger"> <span class="glyphicon glyphicon-ok"></span> </span> Format
+					</li>
+					<li class="list-group-item text-left">
+						<span class="badge alert-info"><%= user_selections['fs_type'] %></span> New filesystem Type
+					</li>
 					<% end %>
 					<% user_selections['option'].try(:each) do  |option|   %>
 					<% if option == '1' %>
-					<a href="#"  class="list-group-item"> <span class="badge"> /var/hda/files/drives/drive# </span> Disk Mount Location </a>
+					<li class="list-group-item text-left">
+						<span class="badge alert-info"> /var/hda/files/drives/<%= @selected_disk.kname %> </span> Mount Location
+					</li>
 					<% else %>
-					<a href="#"  class="list-group-item"> <span class="badge alert-warning"> [Experimental] </span> Add it to shared stroage pool </a>
+					<li class="list-group-item text-left">
+						<span class="badge alert-warning"> [Experimental] </span> Add it to shared stroage pool
+					</li>
 					<% end %>
 					<% end %>
+					<li class="list-group-item text-left">
+						<span class="badge alert-info"> <%= @selected_disk.kname %> </span> System name
+					</li>
+					<li class="list-group-item text-right">
+						<a style="float: left" class="btn btn-default" href=<%= defined?(disk_wizards_engine) ? disk_wizards_engine.manage_path : manage_path %> > <span class="glyphicon glyphicon-arrow-left"></span> Back</a>
+						<span id="debug" class="text-warning" data-toggle="tooltip" data-placement="left" title="No executions takeplace,only list the commands which get executed.">
+							<%= check_box_tag(:debug,1,false,class: 'format') %>
+							Debug </span>
 
+						<%= button_tag(type: "submit", class: "btn btn-success",data: { confirm: "Are you sure?" }) do %>
+						Apply <span class="glyphicon glyphicon-ok"></span>
+						<% end %>
+					</li>
 				</ul>
 
-			</div>
-		</div>
-		<div class="row">
-			<div class="col-md-4 col-md-offset-4 well well-sm">
-				<a class="btn btn-warning" href=<%= defined?(disk_wizards_engine) ? disk_wizards_engine.manage_path : manage_path %> > <span class="glyphicon glyphicon-edit"></span> Go Back and Edit </a>
-				<%= button_tag(type: "submit", class: "btn btn-success",data: { confirm: "Are you sure?" }) do %>
-				Commit Changes <span class="glyphicon glyphicon-ok"></span>
-				<% end %>
 			</div>
 		</div>
 	</div>
