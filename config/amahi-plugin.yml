@@ -4,4 +4,4 @@ name: DiskWizard
 class: DiskWizards
 kind: subtab
 # root url where this plugin will be mounted
-url: /tab/disk_wizards
+url: /tab/disks/disk_wizards
