@@ -1,6 +1,13 @@
 class DiskWizardsController < ApplicationController
-  layout 'disk_wizard'
+  layout :disk_wizard
 
+  def disk_wizard
+    puts action_name
+    action_name.eql?('error') ?  'dw_error' : 'disk_wizard'
+  end
+
+
+  before_filter :clear_mode, except: [:process_disk]
   def select_device
     @mounted_disks = Disk.mounts
     @new_disks = Disk.new_disks
@@ -39,6 +46,8 @@ class DiskWizardsController < ApplicationController
     kname = user_selections['kname']
     disk = Disk.find kname
 
+    DiskCommand.debug_mode = !!(self.user_selections['debug'])
+
     jobs_queue = JobQueue.new(user_selections.length)
     Disk.progress = 0
 
@@ -55,12 +64,13 @@ class DiskWizardsController < ApplicationController
       puts "DEBUG:******** {job_name: job_name,para: para} = #{{job_name: job_name,para: para}}"
       jobs_queue.enqueue({job_name: job_name,job_para: para})
     end
-    success = jobs_queue.process_queue disk
-    if success
+    result = jobs_queue.process_queue disk
+    if result == true
       Disk.progress = 100
       redirect_to(defined?(disk_wizards_engine) ? disk_wizards_engine.complete_path : complete_path)
     else
       Disk.progress = -1
+      session[:exception] = result.inspect
       redirect_to(defined?(disk_wizards_engine) ? disk_wizards_engine.error_path : error_path)
     end
   end
@@ -73,6 +83,7 @@ class DiskWizardsController < ApplicationController
   def done
     flash[:success] = "All disks operations has been completed successfully!"
     @user_selections = self.user_selections
+    @operations = DiskCommand.operations_log
   end
 
   def user_selections
@@ -99,7 +110,11 @@ class DiskWizardsController < ApplicationController
   end
 
   def error
-    render text: "Somthing went wrong!"
+    @exception = session[:exception]
+  end
+
+  def clear_mode
+    DiskCommand.debug_mode = nil
   end
 
 end
