@@ -67,7 +67,12 @@ class JobQueue
         disk.send(job[:job_name],job[:job_para])
       rescue => exception
         puts "DEBUG:*** JOB FAILS #{exception.inspect}"
-        return false
+        if DiskCommand.debug_mode
+           DiskCommand.operations_log << {exception: exception.inspect}
+           next
+        else
+          return exception
+        end
       end
     end
     return true
