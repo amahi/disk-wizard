@@ -26,7 +26,7 @@ class Diskwz
         params = "-b -P -o MODEL,TYPE,SIZE,KNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM"
       end
       lsblk = DiskCommand.new command, params
-      lsblk.execute
+      lsblk.execute false, false # None blocking and not debug mode
       raise "Command execution error: #{lsblk.stderr.read}" if not lsblk.success?
 
       lsblk.result.each_line do |line|
@@ -66,7 +66,7 @@ class Diskwz
       end
 
       df = DiskCommand.new command, params
-      df.execute
+      df.execute false, false # None blocking and not debug mode
       raise "Command execution error: #{df.stderr.read}" if not df.success?
       line = df.result.lines.pop
       line.gsub!(/"/, '')
@@ -81,7 +81,7 @@ class Diskwz
         params = "/dev/#{kname} -bPo MODEL,TYPE,SIZE,KNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM"
       end
       lsblk = DiskCommand.new command, params
-      lsblk.execute
+      lsblk.execute false, false # None blocking and not debug mode
       raise "Command execution error: #{lsblk.stderr.read}" if not lsblk.success?
       partitions = []
       disk = nil
@@ -118,7 +118,7 @@ class Diskwz
         params = "--script /dev/#{kname} print"
       end
       parted = DiskCommand.new command,params
-      parted.execute
+      parted.execute  false, false # None blocking and not debug mode
       return false if not parted.success?
 
       parted.result.each_line do |line|
