@@ -68,7 +68,7 @@ class JobQueue
       rescue => exception
         puts "DEBUG:*** JOB FAILS #{exception.inspect}"
         if DiskCommand.debug_mode
-           DiskCommand.operations_log << {exception: exception.inspect}
+           DiskCommand.operations_log << {name: 'exception', message: exception.inspect}
            next
         else
           return exception
