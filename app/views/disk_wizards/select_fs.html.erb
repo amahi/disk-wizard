@@ -197,8 +197,8 @@ chart.draw(data, options);
 					<th style="text-align: center;">Label</th>
 					<th style="text-align: center;">FStype</th>
 					<th style="text-align: center;">Size</th>
-					<% end %>
 					<th style="text-align: center;">Format</th>
+					<% end %>
 				</tr>
 			</thead>
 			<tbody>
@@ -225,7 +225,7 @@ chart.draw(data, options);
 				<% end %>
 				<tr style="position: relative;cursor: pointer;" class=<%= !!(user_selections['format'] && (user_selections['partition'] == device.kname) rescue false) ? "danger" : "warning" %> kname=<%= device.kname %> >
 					<td colspan="4"> Format entire disk </td>
-					<td><label> <%= check_box_tag(:format,1,!!(user_selections['format'] && (user_selections['partition'] == device.kname) rescue false),class: 'format') %> </label></td>
+					<td style="width: 1%;"><label> <%= check_box_tag(:format,1,!!(user_selections['format'] && (user_selections['partition'] == device.kname) rescue false),class: 'format') %> </label></td>
 				</tr>
 			</tbody>
 		</table>
