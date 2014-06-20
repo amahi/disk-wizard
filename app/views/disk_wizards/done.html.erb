@@ -1,3 +1,4 @@
+<%= render 'shared/header' %>
 <div class="row">
 	<br />
 	<% if user_selections['debug'] %>
@@ -35,9 +36,9 @@
 					count += 1
 					%>
 					<% if operation[:name].eql? 'exception' %>
-					<tr class="warning">
-						<td style="vertical-align: middle;"><span class="glyphicon glyphicon-exclamation-sign"></span></td>
-						<td><%= operation[:name] %></td>
+					<tr>
+						<td style="vertical-align: middle;color: red;"><span class="glyphicon glyphicon-exclamation-sign"></span></td>
+						<td style="vertical-align: middle;" class="text-warning"><%= operation[:name] %></td>
 						<td class="text-justify" ><% operation[:message].try(:each_line) do |line| %>
 						<%= line %>
 						<br />
@@ -82,3 +83,4 @@
 			</div>
 		</div>
 	</div>
+<%= render 'shared/footer' %>

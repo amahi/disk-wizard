@@ -3,6 +3,7 @@
 		$('#debug').tooltip()
 	});
 </script>
+<%= render 'shared/header' %>
 <div class="panel-body">
 	<%= form_tag(defined?(disk_wizards_engine) ? disk_wizards_engine.process_path : process_path,{method: "POST",id:"confirmation"}) %>
 	<%= hidden_field_tag 'device', user_selections['kname'] %>
@@ -52,10 +53,8 @@
 					</li>
 					<li class="list-group-item text-right">
 						<a style="float: left" class="btn btn-default" href=<%= defined?(disk_wizards_engine) ? disk_wizards_engine.manage_path : manage_path %> > <span class="glyphicon glyphicon-arrow-left"></span> Back</a>
-						<label id="debug" class="text-warning" data-toggle="tooltip" data-placement="left" title="No executions takeplace,only list the commands which get executed.">
-							<%= check_box_tag(:debug,1,false,class: 'format') %>
+						<label style="cursor: pointer" id="debug" class="text-warning" data-toggle="tooltip" data-placement="left" title="No executions takeplace,only list the commands which get executed."> <%= check_box_tag(:debug,1,false,class: 'format') %>
 							Debug </label>
-
 
 						<%= button_tag(type: "submit", class: "btn btn-success",data: { confirm: "Are you sure?" }) do %>
 						Apply <span class="glyphicon glyphicon-ok"></span>
@@ -67,3 +66,4 @@
 		</div>
 	</div>
 </div>
+<%= render 'shared/footer' %>

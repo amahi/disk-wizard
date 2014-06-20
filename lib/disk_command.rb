@@ -70,8 +70,8 @@ class DiskCommand
     check root_folder
     script_location = File.join(root_folder,"elevated/")
     begin
-      wrapper_script = "/etc/sudoers.d/disk_wizard"
-      Command.new("echo 'Defaults    !requiretty' | tee #{wrapper_script}").run_now
+      sudo_rules_definitions = "/etc/sudoers.d/disk_wizard"
+      Command.new("echo 'Defaults    !requiretty' | tee #{sudo_rules_definitions}").run_now
       if blocking
         Open3.popen3("sudo","./dsk-wz.sh",@command,@parameters,:chdir=>script_location) {|stdin, stdout, stderr, wait_thr|
           @stdout = stdout ;@stderr = stderr ;@wait_thr = wait_thr

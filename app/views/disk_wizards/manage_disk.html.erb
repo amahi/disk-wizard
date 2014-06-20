@@ -1,3 +1,4 @@
+<%= render 'shared/header' %>
 <div class="panel-body">
 	<%= form_tag(defined?(disk_wizards_engine) ? disk_wizards_engine.confirmation_path : confirmation_path ,{method: "POST",id:"options"}) %>
 	<%= hidden_field_tag 'device', user_selections['kname'] %>
@@ -32,3 +33,4 @@
 		<% end %>
 	</div>
 </div>
+<%= render 'shared/footer' %>

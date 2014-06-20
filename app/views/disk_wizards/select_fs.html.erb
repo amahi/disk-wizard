@@ -61,6 +61,7 @@ var selection = chart.getSelection();
 chart.draw(data, options);
 }
 </script>
+<%= render 'shared/header' %>
 <div class="panel-body">
 	<!-- div class="row">
 	<div class="well" id="disk_stats">
@@ -73,7 +74,7 @@ chart.draw(data, options);
 		function check() {
 			var selected_partition = $("#partition").attr("value");
 			if ( typeof selected_partition === 'undefined') {
-				alert("No partition selected! Entire device (" + $("#model").attr('value') + ") automatically selected.");
+				alert("No partition selected! (" + $("#model").attr('value') + ").");
 				return false;
 			}
 			if (($('input[type=radio]:checked').size() > 0)) {
@@ -279,3 +280,4 @@ chart.draw(data, options);
 	</div>
 	</form>
 </div>
+<%= render 'shared/footer' %>

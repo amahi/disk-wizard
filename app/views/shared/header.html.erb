@@ -1,0 +1,88 @@
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title><%= @page_title ||= 'Amahi Disk Wizard' %></title>
+
+	<%= stylesheet_link_tag "application", media: "all" %>
+	<%= stylesheet_link_tag "basic", media: "all" %>
+	<%= stylesheet_link_tag "bootstrap", media: "all" %>
+	<%= stylesheet_link_tag "bootstrap-theme", media: "all" %>
+
+	<%= javascript_include_tag "//www.google.com/jsapi", "chartkick" %>
+	<%= javascript_include_tag "application"%>
+	<%= javascript_include_tag "bootstrap"%>
+	<%= javascript_include_tag "bootstrap-contextmenu"%>
+	<%= javascript_include_tag "disks"%>
+
+	<%= favicon_link_tag "fav/favicon.ico"%>
+	<%= csrf_meta_tag %>
+	<style>
+		hr {
+			-moz-border-bottom-colors: none;
+			-moz-border-image: none;
+			-moz-border-left-colors: none;
+			-moz-border-right-colors: none;
+			-moz-border-top-colors: none;
+			border-color: #dfdfdf;-moz-use-text-color #dfdfdf;
+			border-style: solid none;
+			border-width: 1px 0;
+			margin: 0;
+			padding: 0;
+		}
+		#content {
+			//height: 100%;
+		}
+
+		#footer {
+			height: auto;
+			margin: auto;
+		}
+
+	</style>
+
+</head>
+
+<div class="row text-center">
+	<div class="col-md-12">
+		<div class="panel panel-default">
+			<ul class="nav nav-pills nav-justified alert-warning">
+				<li class=<%= params[:action] == "select_device" ? "active" : "disabled" %> >
+					<a href="#">Select new drive <span class="glyphicon glyphicon-chevron-right"></span> </a>
+				</li>
+				<li class=<%= params[:action] == "select_fs" ? "active" : "disabled" %> >
+					<a href="#">Choose file system <span class="glyphicon glyphicon-chevron-right"></span> </a>
+				</li>
+				<li class=<%= params[:action] == "manage_disk" ? "active" : "disabled" %> >
+					<a href="#">Options <span class="glyphicon glyphicon-chevron-right"></span> </a>
+				</li>
+				<li class=<%= params[:action] == "confirmation" ? "active" : "disabled" %> >
+					<a href="#">Confirmation <span class="glyphicon glyphicon-chevron-right"></span> </a>
+				</li>
+				<li class=<%= params[:action] == "done" ? "active" : "disabled" %> >
+					<a href="#">Done <span class="glyphicon glyphicon-ok"></span> </a>
+				</li>
+
+			</ul>
+			<hr />
+			<!-- TEMP code :- params[:action] == "select_fs"	 -->
+			<% if flash[:error] %>
+			<div class="aleart_box" style="position: absolute;z-index: 9999;left: 12.5%;width: 75%">
+				<div class="alert alert-danger alert-dismissable">
+					<button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+						&times;
+					</button>
+					<strong>Warning!</strong> <%= flash[:error] %>
+				</div>
+			</div>
+			<% flash[:error] = nil %>
+			<% end %>
+			<% if flash[:success] %>
+			<div class="aleart_box" style="position: absolute;z-index: 9999;left: 12.5%;width: 75%">
+				<div class="alert alert-success alert-dismissable">
+					<button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+						&times;
+					</button>
+					<%= flash[:success] %>
+				</div>
+			</div>
+			<% flash[:success] = nil %>
+			<% end %>

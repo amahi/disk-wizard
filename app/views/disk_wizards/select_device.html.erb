@@ -14,11 +14,13 @@
 
 	}); 
 </script>
+<%= render 'shared/header' %>
+
 <div class="panel-body">
 	<% "*****************#{@new_disks}"%>
 
 	<div class="row">
-		<table class="table table-hover">
+		<table class="settings table table-hover">
 			<thead>
 				<tr data-toggle="collapse" data-target="#demo1" class="accordion-toggle" style="cursor: pointer" >
 					<th class="text-center">Select</th>
@@ -84,3 +86,4 @@
 		</div>
 	</div>
 </div>
+<%= render 'shared/footer' %>
