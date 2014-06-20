@@ -1,5 +1,5 @@
 class DiskWizardsController < ApplicationController
-  layout :disk_wizard
+  before_filter :admin_required
 
   def disk_wizard
     puts action_name
