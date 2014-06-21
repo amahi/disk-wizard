@@ -134,7 +134,7 @@ class Diskwz
       #un-mounting not guaranteed, remain mounted if device is busy
       kname = get_kname disk
       command = "umount"
-      params = " -l /dev/#{kname}"
+      params = " -fl /dev/#{kname}"
       umount = DiskCommand.new command,params
       #TODO: This should be a none-blocking call, until unmount the disk/device successfully, can't proceed with other works
       umount.execute
