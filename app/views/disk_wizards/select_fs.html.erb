@@ -77,11 +77,6 @@ chart.draw(data, options);
 				alert("No partition selected! (" + $("#model").attr('value') + ").");
 				return false;
 			}
-			if (($('input[type=radio]:checked').size() > 0)) {
-				return true;
-			}
-			alert("Please select a file system type!");
-			return false;
 		}
 
 		$(function() {
@@ -188,9 +183,9 @@ chart.draw(data, options);
 				border-radius: 5px;
 			}
 		</style>
-		<table class="settings table table-hover">
+		<table class="table-bordered table table-hover">
 			<thead>
-				<tr>
+				<tr class="active">
 					<%
 					device = @selected_disk
 					unless device.partitions.blank? %>
@@ -233,42 +228,16 @@ chart.draw(data, options);
 	</div>
 	<div class="row" >
 		<div id="fs_selector" class="col-md-5 col-md-offset-4" style="display: none;">
-
 			<div class="well">
-
 				<ul class="list-group">
 					<li class="list-group-item list-group-item-success">
 						Please select a file system type
-
 					</li>
-					<li class="list-group-item">
-						<label> <%= radio_button_tag(:fs_type, "ext4",true) %>
-							Ext4 </label>
-
-					</li>
-					<li class="list-group-item">
-						<label> <%= radio_button_tag(:fs_type, "ext3",!!(user_selections && user_selections['fs_type'] == "ext3")) %>
-							Ext3 </label>
-
-					</li>
-
-					<li class="list-group-item">
-						<label> <%= radio_button_tag(:fs_type, "ntfs",!!(user_selections && user_selections['fs_type'] == "ntfs")) %>
-							NTFS </label>
-
-					</li>
-					<li class="list-group-item">
-						<label> <%= radio_button_tag(:fs_type, "fat32",!!(user_selections && user_selections['fs_type'] == "fat32")) %>
-							FAT32 </label>
-
-					</li>
+					<%= select_tag :fs_type, options_for_select([ ["Ext4","ext4"], ["Ext3",'ext3'], ["NTFS","ntfs"],["FAT32","fat32"] ], "ext4"), class: "form-control" %>
 
 				</ul>
-
 			</div>
-
 		</div>
-
 	</div>
 	<div class="row text-left">
 		<%= link_to(defined?(disk_wizards_engine) ? disk_wizards_engine.select_path : select_path, class: "btn btn-default") do %>
