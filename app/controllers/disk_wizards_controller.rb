@@ -5,9 +5,9 @@ class DiskWizardsController < ApplicationController
     defined?(disk_wizards_engine) ? admin_required : false
   end
 
-
   before_filter :clear_mode, except: [:process_disk]
   def select_device
+    DebugLogger.info "--disk_wizard_start--"
     @mounted_disks = Disk.mounts
     @new_disks = Disk.new_disks
   end
@@ -15,7 +15,7 @@ class DiskWizardsController < ApplicationController
   def select_fs
     device = params[:device]
     self.user_selections = {kname: device} if device
-    puts device
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Device = #{device}"
     if not(device and request.post?)
       redirect_to defined?(disk_wizards_engine) ? disk_wizards_engine.select_path : select_path, :flash => { :error => "Please select a device to continue." }
       return false
@@ -43,6 +43,7 @@ class DiskWizardsController < ApplicationController
 
   def process_disk
     kname = user_selections['kname']
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Selected disk/partition = #{kname}"
     disk = Disk.find kname
 
     DiskCommand.debug_mode = !!(self.user_selections['debug'])
@@ -53,14 +54,14 @@ class DiskWizardsController < ApplicationController
     if user_selections['format']
       para = {kname: kname,fs_type: user_selections['fs_type']}
       job_name = :format_job
-      puts "DEBUG:******** {job_name: job_name,para: para} = #{{job_name: job_name,para: para}}"
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Job_name = #{job_name}, para = #{para}"
       jobs_queue.enqueue({job_name: job_name,job_para: para})
     end
 
     if user_selections["option"]
       para = {kname: kname}
       job_name = :mount_job
-      puts "DEBUG:******** {job_name: job_name,para: para} = #{{job_name: job_name,para: para}}"
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Job_name = #{job_name}, para = #{para}"
       jobs_queue.enqueue({job_name: job_name,job_para: para})
     end
     result = jobs_queue.process_queue disk
@@ -95,12 +96,12 @@ class DiskWizardsController < ApplicationController
     unless current_user_selections
       session[:user_selections] = hash.to_json and return
     end
-    puts "DEBUG *********************** hash{hash}"
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:New hash= #{hash}"
     hash.each do |key,value|
       current_user_selections[key] = value
     end
     session[:user_selections] = current_user_selections.to_json
-    puts "DEBUG ************************** session[:user_selections] #{session[:user_selections]}"
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Updated session[:user_selections] #{session[:user_selections]}"
   end
 
   def operations_progress
@@ -114,6 +115,27 @@ class DiskWizardsController < ApplicationController
 
   def clear_mode
     DiskCommand.debug_mode = nil
+  end
+
+  def debug_info
+    require "open3"
+    script_location = "/var/hda/apps/520ut3lo6w/elevated/"
+    Open3.popen3("sudo","./debug_info.sh",:chdir=>script_location) {|stdin, stdout, stderr, wait_thr|
+      exit_status = wait_thr.value.exitstatus
+      if not(exit_status.equal? 0)
+        error = stderr.read
+        render json: {error: error}
+        return false
+      end
+      result = stdout.read
+      valid_url = /https?:\/\/[\S]+/
+      url = urls = nil
+      result.each_line do |line|
+        urls = line.split.grep(valid_url) if line.match valid_url
+      end
+      url = urls.group_by(&:size).max.last[0] if urls
+      render json: {url: url}
+    }
   end
 
 end

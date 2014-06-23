@@ -16,6 +16,7 @@ root :to => 'disk_wizards#select_device'
   get 'complete' => 'disk_wizards#done'
   get 'get_progress' => 'disk_wizards#operations_progress'
   get 'error' => 'disk_wizards#error'
+  get 'debug_info' => 'disk_wizards#debug_info'
   post 'process' => 'disk_wizards#progress'
   post 'ajax_process' => 'disk_wizards#process_disk'
 
