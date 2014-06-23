@@ -52,7 +52,7 @@ class Fstab
       raise ArgumentError.new("Missing :mount_point, :type, :opts, :dump or :pass options")
     end
 
-    if @safe_mode
+    if @safe_mode and not DiskCommand.debug_mode
       if label 
         raise ArgumentError.new("Invalid device label #{label}") unless \
               File.blockdev?("/dev/disk/by-label/#{opts[:label]}")
@@ -236,7 +236,7 @@ class Fstab
   # All the attributes except dev may be nil at any given time since
   # device may not have a valid filesystem or label.
   def self.get_blkdev_fs_attrs(dev)
-    raise ArgumentError.new("Invalid device path #{dev}") unless File.blockdev?(dev)
+    raise ArgumentError.new("Invalid device path #{dev}") unless File.blockdev?(dev) and not DiskCommand.debug_mode
     blkid = `/sbin/blkid #{dev}`
     attrs = {}
     attrs[:uuid] = blkid.match(/UUID="(.*?)"/)[1] rescue nil

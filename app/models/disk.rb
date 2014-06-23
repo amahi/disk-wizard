@@ -125,9 +125,13 @@ class Disk #< ActiveRecord::Base
 
   # Delete all excisting partitions and create one partition from entire device/disk
   def full_format fstype, label = nil
+    DebugLogger.info "class = #{self.class.name}, method = #{__method__}"
     delete_all_partitions unless partitions.blank?
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Creating partition #{self.kname}"
     Diskwz.create_partition self, 1, -1
-    new_partition = Disk.find self.kname + "1"
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Find partition #{@kname}"
+    new_partition = Disk.find @kname + "1"
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Formating #{@kname} to #{fstype}"
     new_partition.format fstype
   end
 
@@ -148,20 +152,23 @@ class Disk #< ActiveRecord::Base
   end
 
   def format_job params_hash
-    puts "DEBUG:********** format_job params_hash #{params_hash}"
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Params_hash #{params_hash}"
     new_fstype = params_hash[:fs_type]
     Disk.progress = 10
-    puts "DEBUG:*********** umount @path umount #{self.path}"
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Create partition_table #{partition_table}"
     #TODO: check the disk size and pass the relevent partition table type (i.e. if device size >= 3TB create GPT table else MSDOS(MBR))
     create_partition_table unless partition_table
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Full format label #{params_hash['label']}"
     full_format new_fstype, params_hash['label']
     Disk.progress = 40
   end
 
   def mount_job params_hash
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Params_hash #{params_hash}"
     Disk.progress = 60
     kname = @kname
     label = params_hash['label'] || kname
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:New partition Label #{label}"
     new_partition = Disk.find kname + "1"
     new_partition.mount label
     Disk.progress = 80

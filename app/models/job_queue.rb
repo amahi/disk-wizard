@@ -62,13 +62,15 @@ class JobQueue
   def process_queue disk
     while(not self.empty?)
       job =  self.dequeue
-      puts "DEBUG:******* job[:job_name] = #{job[:job_name]} job[:job_para] =  $ #{job[:job_para]}"
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:job[:job_name] = #{job[:job_name]} job[:job_para] = #{job[:job_para]}"
       begin
         disk.send(job[:job_name],job[:job_para])
       rescue => exception
-        puts "DEBUG:*** JOB FAILS #{exception.inspect}"
+        DebugLogger.info "|#{self.class.name}|>|#{__method__}|:JOB FAILS #{exception.inspect}"
         if DiskCommand.debug_mode
-           DiskCommand.operations_log << {name: 'exception', message: exception.inspect}
+           last_command = @@operations_log.last
+           last_command[:exception] = exception.inspect
+           DebugLogger.info "Exception: #{exception.inspect}"
            next
         else
           return exception

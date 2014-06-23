@@ -100,9 +100,9 @@ class Partition
   # Return the `Disk` object of which this Partition belongs to
   def get_disk
     #Strip partition number
-    #puts "@kname = #{@kname}"
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:@Kname = #{@kname}"
     disk_kname = @kname.gsub(/[0-9]/, "")
-    #puts "disk_kname = #{disk_kname}"
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Disk_kname = #{disk_kname}"
     disk = Disk.find disk_kname
     return disk
   end

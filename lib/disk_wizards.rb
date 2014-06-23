@@ -3,7 +3,7 @@ require "disk_wizards/engine"
 require "chartkick.rb"
 require "disk_command.rb"
 require "diskwz.rb"
-
+require "debug_logger.rb"
 module DiskWizard
 	class Lib
 		# the code for your plugin library here

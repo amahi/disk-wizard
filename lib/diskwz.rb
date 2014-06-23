@@ -26,7 +26,7 @@ class Diskwz
         params = "-b -P -o MODEL,TYPE,SIZE,KNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM"
       end
       lsblk = DiskCommand.new command, params
-      lsblk.execute false, false # None blocking and not debug mode
+      lsblk.execute
       raise "Command execution error: #{lsblk.stderr.read}" if not lsblk.success?
 
       lsblk.result.each_line do |line|
@@ -81,8 +81,13 @@ class Diskwz
         params = "/dev/#{kname} -bPo MODEL,TYPE,SIZE,KNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM"
       end
       lsblk = DiskCommand.new command, params
-      lsblk.execute false, false # None blocking and not debug mode
+      lsblk.execute
       raise "Command execution error: #{lsblk.stderr.read}" if not lsblk.success?
+      if lsblk.success == -1
+        disk = {"model"=>"N/A", "type"=>"disk", "size"=>nil, "kname"=>"#{kname}", "rm"=>nil, "partitions"=>[]}
+        partition = {"type"=>"part", "size"=>nil, "kname"=>"#{kname}", "uuid"=>"N/A", "label"=>nil, "mountpoint"=>nil, "fstype"=>nil, "rm"=>nil, "used"=>nil, "available"=>nil}
+        return partition ? partition : disk
+      end
       partitions = []
       disk = nil
       lsblk.result.each_line do |line|
@@ -142,25 +147,29 @@ class Diskwz
     end
 
     def mount mount_point, disk
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Init Fstab disk.path = #{disk.path}"
       fstab = Fstab.new
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Add_fs mount_point #{mount_point}"
       fstab.add_fs(disk.path,mount_point,'auto','auto,rw,exec',0,0)
-
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Create directory mount_point = #{mount_point}"
       create_directory mount_point unless File.directory?(mount_point)
 
       #remount all
       command = "mount"
       params = "#{disk.path} #{mount_point}"
       mount = DiskCommand.new command,params
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Mount executing"
       mount.execute
       raise "Command execution error: #{mount.stderr.read}" if not mount.success?
     end
 
     def format disk, fstype
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Disk.kname = #{disk.kname}, fstype = #{fstype}"
       fstype = "vfat" if fstype == "fat32" #TODO: mkfs.vfat: invalid option -- 'q'
       quick_format = (fstype == "ntfs") ? "-f" : nil
       command = "mkfs.#{fstype} "
       params = "-q #{quick_format} -F #{disk.path}" #-F parameter to ignore warning and -q for quiet execution
-
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Format params = #{params}"
       mkfs = DiskCommand.new command, params
       mkfs.execute
       raise "Command execution error: #{mkfs.stderr.read}" if not mkfs.success?
