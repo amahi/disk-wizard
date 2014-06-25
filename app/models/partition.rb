@@ -60,6 +60,7 @@ class Partition
   def mount label
     label ||= self.kname
     mount_point = File.join "/var/hda/files/drives/", label
+    unmount if mountpoint #Unmount from previous mount point
     Diskwz.mount mount_point, self
   end
 

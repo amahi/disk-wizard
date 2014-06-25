@@ -164,12 +164,18 @@ class Diskwz
     end
 
     def format disk, fstype
-      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Disk.kname = #{disk.kname}, fstype = #{fstype}"
-      fstype = "vfat" if fstype == "fat32" #TODO: mkfs.vfat: invalid option -- 'q'
-      quick_format = (fstype == "ntfs") ? "-f" : nil
       command = "mkfs.#{fstype} "
-      params = "-q #{quick_format} -F #{disk.path}" #-F parameter to ignore warning and -q for quiet execution
-      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Format params = #{params}"
+      case fstype
+        when "ntfs"
+          params = " -q -f -F #{disk.path}" #-F parameter to ignore warning and -q for quiet execution
+        when "vfat"
+          params = " #{disk.path}"
+        when "ext3" , "ext4"
+          params = " -q -F #{disk.path}"
+        else
+          raise "#{fstype} Filesystem type not supported.Please re-try with diffrent filesystem."
+      end
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Disk.kname = #{disk.kname}, fstype = #{fstype} format params = #{params}"
       mkfs = DiskCommand.new command, params
       mkfs.execute
       raise "Command execution error: #{mkfs.stderr.read}" if not mkfs.success?
