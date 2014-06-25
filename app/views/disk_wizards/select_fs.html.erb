@@ -233,7 +233,7 @@ chart.draw(data, options);
 					<li class="list-group-item list-group-item-success">
 						Please select a file system type
 					</li>
-					<%= select_tag :fs_type, options_for_select([ ["Ext4","ext4"], ["Ext3",'ext3'], ["NTFS","ntfs"],["FAT32","fat32"] ], "ext4"), class: "form-control" %>
+					<%= select_tag :fs_type, options_for_select([ ["Ext4","ext4"], ["Ext3",'ext3'], ["NTFS","ntfs"],["FAT32","vfat"] ], "ext4"), class: "form-control" %>
 
 				</ul>
 			</div>
