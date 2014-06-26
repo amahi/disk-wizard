@@ -2,8 +2,6 @@
 # inheriting ActiveRecord::Base is not necessary
 class Disk #< ActiveRecord::Base
 
-  require "disk_tools"
-
   attr_reader  :model, :size, :rm
   attr_accessor :kname, :partitions
 
