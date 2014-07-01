@@ -188,6 +188,7 @@ class Diskwz
       parted = DiskCommand.new command, params
       parted.execute
       raise "Command execution error: #{parted.stderr.read}" if not parted.success?
+      probe_kernal device
     end
 
 
@@ -197,6 +198,7 @@ class Diskwz
       parted = DiskCommand.new command, params
       parted.execute
       raise "Command execution error: #{parted.stderr.read}" if not parted.success?
+      probe_kernal device #inform the OS of partition table changes
     end
 
     def delete_partition partition
@@ -206,12 +208,21 @@ class Diskwz
       parted = DiskCommand.new command, params
       parted.execute
       raise "Command execution error: #{parted.stderr.read}" if not parted.success?
+      probe_kernal partition
+    end
+
+    def probe_kernal device = nil
+      command = 'partprobe'
+      params = device ? device.path : nil
+      partprobe = DiskCommand.new command, params
+      partprobe.execute
+      raise "Command execution error: #{partprobe.stderr.read}" if not partprobe.success?
     end
 
     private
 
     def get_kname disk
-      if disk.kind_of? Disk or disk.kind_of? Partition
+      if disk.kind_of? Device or disk.kind_of? Partition
         kname = disk.kname
       else
         kname = disk

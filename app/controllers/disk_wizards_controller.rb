@@ -8,8 +8,8 @@ class DiskWizardsController < ApplicationController
   before_filter :clear_mode, except: [:process_disk]
   def select_device
     DebugLogger.info "--disk_wizard_start--"
-    @mounted_disks = Disk.mounts
-    @new_disks = Disk.new_disks
+    @mounted_disks = Device.mounts
+    @new_disks = Device.new_disks
   end
 
   def select_fs
@@ -20,7 +20,7 @@ class DiskWizardsController < ApplicationController
       redirect_to defined?(disk_wizards_engine) ? disk_wizards_engine.select_path : select_path, :flash => { :error => "Please select a device to continue." }
       return false
     end
-    @selected_disk = Disk.find(device || user_selections['kname'])
+    @selected_disk = Device.find(device || user_selections['kname'])
   end
 
   def manage_disk
@@ -38,18 +38,18 @@ class DiskWizardsController < ApplicationController
   def confirmation
     option = params[:option]
     self.user_selections = {option: option}
-    @selected_disk = Disk.find(user_selections['kname'])
+    @selected_disk = Device.find(user_selections['kname'])
   end
 
   def process_disk
     kname = user_selections['kname']
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Selected disk/partition = #{kname}"
-    disk = Disk.find kname
+    disk = Device.find kname
 
     DiskCommand.debug_mode = !!(self.user_selections['debug'])
 
     jobs_queue = JobQueue.new(user_selections.length)
-    Disk.progress = 0
+    Device.progress = 0
 
     if user_selections['format']
       para = {kname: kname,fs_type: user_selections['fs_type']}
@@ -66,10 +66,10 @@ class DiskWizardsController < ApplicationController
     end
     result = jobs_queue.process_queue disk
     if result == true
-      Disk.progress = 100
+      Device.progress = 100
       redirect_to(defined?(disk_wizards_engine) ? disk_wizards_engine.complete_path : complete_path)
     else
-      Disk.progress = -1
+      Device.progress = -1
       session[:exception] = result.inspect
       redirect_to(defined?(disk_wizards_engine) ? disk_wizards_engine.error_path : error_path)
     end
@@ -105,8 +105,8 @@ class DiskWizardsController < ApplicationController
   end
 
   def operations_progress
-    message = Disk.progress_message(Disk.progress)
-    render json: {percentage: Disk.progress, message: message}
+    message = Device.progress_message(Device.progress)
+    render json: {percentage: Device.progress, message: message}
   end
 
   def error
