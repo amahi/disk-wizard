@@ -29,9 +29,10 @@
 	border: 1px solid #d0cece;
 	height: auto;
 	width: 100%;
-	padding: auto;
+	padding: 0px;
 	background: white;
 	font-size: large;
+    }
 </style>
 <div class="row">
 	<br />
@@ -108,9 +109,9 @@
 				<tbody>
 					<tr>
 						<td><%= @user_selections["kname"] %></td>
-						<td><%= @user_selections["fs_type"] %></td>
+						<td><%= Partition.FilesystemType.key(@user_selections["fs_type"].to_i) %></td>
 						<% if @user_selections["option"] %>
-						<td>/var/hda/disks/<%= @user_selections["kname"] %></td>
+						<td>/var/hda/disks/<%= @user_selections['label'] %></td>
 						<% end %>
 					</tr>
 				</tbody>

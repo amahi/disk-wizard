@@ -20,7 +20,7 @@ require "open3"
 # Named as 'DiskCommand' to prevent class name conflicts('Command' library), when intergrating disk-wizard as Amahi plugin app
 class DiskCommand
   attr_reader :stdin, :stdout, :stderr, :success
-
+  cattr_accessor :operations_log
   # `debug_mode` class variable which hold the current executing mode of the commands,if true, commands will not be executed on the system level instead command(operation) will be loged(in @@operations_log) for future use
   @@debug_mode = false
   # `operations_log` class variable,an array of operations which executed during debug mode (while @@debug_mode flag is up)

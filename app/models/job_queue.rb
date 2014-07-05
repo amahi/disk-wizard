@@ -37,7 +37,7 @@ class JobQueue
   # The queue is dequeued
   def dequeue
     raise "Queue Underflow - The queue is empty" if self.empty?
-    
+
     x = @array[@head]
 
     if @head == @length - 1
@@ -58,7 +58,7 @@ class JobQueue
     @head = nil
     @tail = 0
   end
-  
+
   def process_queue disk
     while(not self.empty?)
       job =  self.dequeue
@@ -68,10 +68,10 @@ class JobQueue
       rescue => exception
         DebugLogger.info "|#{self.class.name}|>|#{__method__}|:JOB FAILS #{exception.inspect}"
         if DiskCommand.debug_mode
-           last_command = @@operations_log.last
-           last_command[:exception] = exception.inspect
-           DebugLogger.info "Exception: #{exception.inspect}"
-           next
+          DebugLogger.info "Exception: #{exception.inspect}"
+          DiskCommand.operations_log.push({}) unless DiskCommand.operations_log.last
+          DiskCommand.operations_log.last[:exception] = exception.inspect
+          next
         else
           return exception
         end
