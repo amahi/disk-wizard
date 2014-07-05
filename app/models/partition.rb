@@ -14,6 +14,7 @@
 # License along with this program; if not, write to the Amahi
 # team at http://www.amahi.org/ under "Contact Us."
 class Partition
+  include Operation
 
   # @fstype: Filesystem type of the partition, currently supported FS types are Ext3,Ext4,NTFS,FAT32
   # Size: Size of the partition/Unallocated(free) space in kilobytes(KB)
@@ -35,6 +36,16 @@ class Partition
     }
   end
 
+  def self.FilesystemType
+    {
+        TYPE_EXT4: 0,
+        TYPE_EXT3: 1,
+        TYPE_NTFS: 2,
+        TYPE_FAT32: 3,
+        TYPE_XFS: 4 #About XFS http://en.wikipedia.org/wiki/XFS
+    }
+  end
+
   def self.PartitionAlignment
     {
         ALIGN_CYLINDER: 0, #Align to nearest cylinder
@@ -46,7 +57,7 @@ class Partition
 
   def self.PartitionStatus
     {
-        STAT_REA: 0,
+        STAT_REAL: 0,
         STAT_NEW: 1,
         STAT_COPY: 2,
         STAT_FORMATTED: 3
@@ -77,35 +88,9 @@ class Partition
     return @disk
   end
 
-  # Remove the partition from device/disk
-  def delete
-    #TODO: remove fstab entry if disk is permanently mounted
-    unmount if mountpoint
-    Diskwz.delete_partition self
-  end
-
   # Absolute path to filesystem representation of devices your system understands
   def path
     return "/dev/#{@kname}"
-  end
-
-  # Mount the partition with the given label, if no label is given kname will be used as default label
-  def mount label
-    label ||= self.kname
-    mount_point = File.join "/var/hda/files/drives/", label
-    unmount if mountpoint #Unmount from previous mount point
-    Diskwz.mount mount_point, self
-  end
-
-  # Unmount the partition
-  def unmount
-    Diskwz.umount self
-  end
-
-  # Format the partition to given file system type
-  def format fstype
-    unmount if mountpoint
-    Diskwz.format self, fstype
   end
 
   def format_job params_hash
@@ -118,8 +103,9 @@ class Partition
   end
 
   def mount_job params_hash
+    unmount if mountpoint #Unmount from previous mount point
     Device.progress = 60
-    mount params_hash['label']
+    mount params_hash[:label]
     Device.progress = 80
   end
 

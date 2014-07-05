@@ -1,7 +1,7 @@
 #Since no database involvement in the model, data is fetch on the fly by parsing the result of system calls
 # inheriting ActiveRecord::Base is not necessary
 class Device #< ActiveRecord::Base
-
+  include Operation
   attr_reader :model, :size, :rm
   attr_accessor :kname, :partitions
 
@@ -83,15 +83,6 @@ class Device #< ActiveRecord::Base
     return path
   end
 
-  def self.find disk
-    data_hash = Diskwz.find disk
-    if data_hash['type'].eql? 'part'
-      return Partition.new data_hash
-    else
-      return Device.new data_hash
-    end
-  end
-
   def Device.progress_message(percent)
     case percent
       when 0 then
@@ -133,15 +124,6 @@ class Device #< ActiveRecord::Base
     DiskUtils.removables
   end
 
-  def mount disk
-    raise "#{__method__} method not implimented !"
-
-  end
-
-  def unmount
-    Diskwz.umount self
-  end
-
   # Delete all excisting partitions and create one partition from entire device/disk
   def full_format fstype, label = nil
     DebugLogger.info "class = #{self.class.name}, method = #{__method__}"
@@ -155,8 +137,8 @@ class Device #< ActiveRecord::Base
   end
 
   #TODO: extend to create new partitions on unallocated spaces
-  def create_partition size = nil, type = Partition.types[:primary]
-    new_partition_kname = Diskwz.create_partition self, size[:start_block], size[:end_block]
+  def create_partition(size = nil, type = Partition.PartitionType[:TYPE_PRIMARY])
+    Diskwz.create_partition self, size[:start_block], size[:end_block]
     partitions = Device.find(self).partitions
     return partitions.last
   end
@@ -165,31 +147,27 @@ class Device #< ActiveRecord::Base
     Diskwz.create_partition_table self
   end
 
-  def format_to filesystem_type
-    raise "#{__method__} method not implimented !"
-
-  end
-
   def format_job params_hash
+    unmount if mountpoint #Unmount from previous mount point
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Params_hash #{params_hash}"
     new_fstype = params_hash[:fs_type]
     Device.progress = 10
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Create partition_table #{partition_table}"
     #TODO: check the disk size and pass the relevent partition table type (i.e. if device size >= 3TB create GPT table else MSDOS(MBR))
     create_partition_table unless partition_table
-    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Full format label #{params_hash['label']}"
-    full_format new_fstype, params_hash['label']
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Full format label #{params_hash[:label]}"
+    full_format new_fstype, params_hash[:label]
     Device.progress = 40
   end
 
   def mount_job params_hash
+    unmount if mountpoint #Unmount from previous mount point
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Params_hash #{params_hash}"
     Device.progress = 60
     kname = @kname
-    label = params_hash['label'] || kname
-    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:New partition Label #{label}"
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:New partition Label #{params_hash[:label]}"
     new_partition = Device.find kname + "1"
-    new_partition.mount label
+    new_partition.mount params_hash[:label]
     Device.progress = 80
   end
 
