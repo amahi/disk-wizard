@@ -164,17 +164,23 @@ class Diskwz
     end
 
     def format disk, fstype
-      command = "mkfs.#{fstype} "
       case fstype
-        when "ntfs"
-          params = " -q -f -F #{disk.path}" #-F parameter to ignore warning and -q for quiet execution
-        when "vfat"
+        when Partition.FilesystemType[:TYPE_EXT4]
+          params = " -q #{disk.path}"
+          program_name = 'ext4'
+        when Partition.FilesystemType[:TYPE_EXT3]
+          params = " -q #{disk.path}"
+          program_name = 'ext3'
+        when Partition.FilesystemType[:TYPE_NTFS]
+          params = " -q -f #{disk.path}" # Perform quick (fast) format and -q for quiet execution
+          program_name = 'ntfs'
+        when Partition.FilesystemType[:TYPE_FAT32]
           params = " #{disk.path}"
-        when "ext3" , "ext4"
-          params = " -q -F #{disk.path}"
+          program_name = 'vfat'
         else
           raise "#{fstype} Filesystem type not supported.Please re-try with diffrent filesystem."
       end
+      command = "mkfs.#{program_name} "
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Disk.kname = #{disk.kname}, fstype = #{fstype} format params = #{params}"
       mkfs = DiskCommand.new command, params
       mkfs.execute
@@ -184,7 +190,7 @@ class Diskwz
     #TODO: Need more testing
     def create_partition device, start_block, end_block
       command = 'parted'
-      params = "-s -a optimal #{device.path} mkpart primary #{start_block} -- #{end_block}"
+      params = "-s -a optimal #{device.path} mkpart primary ext3 #{start_block} -- #{end_block}"
       parted = DiskCommand.new command, params
       parted.execute
       raise "Command execution error: #{parted.stderr.read}" if not parted.success?
