@@ -6,6 +6,7 @@ class DiskWizardsController < ApplicationController
   end
 
   before_filter :clear_mode, except: [:process_disk]
+
   def select_device
     DebugLogger.info "--disk_wizard_start--"
     @mounted_disks = Device.mounts
@@ -16,33 +17,36 @@ class DiskWizardsController < ApplicationController
     device = params[:device]
     self.user_selections = {kname: device} if device
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Device = #{device}"
-    if not(device and request.post?)
-      redirect_to defined?(disk_wizards_engine) ? disk_wizards_engine.select_path : select_path, :flash => { :error => "Please select a device to continue." }
+    if not (device and request.post?)
+      redirect_to defined?(disk_wizards_engine) ? disk_wizards_engine.select_path : select_path, :flash => {:error => "Please select a device to continue."}
       return false
     end
     @selected_disk = Device.find(device || user_selections['kname'])
   end
 
   def manage_disk
-    device = params[:device]
     format = params[:format]
     partition = params[:partition]
-    fs_type = params[:fs_type]
-    if (not(fs_type or user_selections['fs_type']) and not user_selections['kname'])
-      redirect_to defined?(disk_wizards_engine) ? disk_wizards_engine.file_system_path : file_system_path , :flash => { :error => "Please select a filesystem type to continue." }
+    fs_type = params[:fs_type].to_i
+    if (not (fs_type or user_selections['fs_type']) and not user_selections['kname'])
+      redirect_to defined?(disk_wizards_engine) ? disk_wizards_engine.file_system_path : file_system_path, :flash => {:error => "Please select a filesystem type to continue."}
       return false
     end
-    self.user_selections = {fs_type: fs_type,format: format,kname: partition}
+    if request.post?
+      self.user_selections = {fs_type: fs_type, format: format, kname: partition}
+    end
   end
 
   def confirmation
     option = params[:option]
-    self.user_selections = {option: option}
+    label = params[:label].blank? ? nil : params[:label]
+    self.user_selections = {option: option, label: label}
     @selected_disk = Device.find(user_selections['kname'])
   end
 
   def process_disk
     kname = user_selections['kname']
+    label = user_selections['label']
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Selected disk/partition = #{kname}"
     disk = Device.find kname
 
@@ -52,17 +56,17 @@ class DiskWizardsController < ApplicationController
     Device.progress = 0
 
     if user_selections['format']
-      para = {kname: kname,fs_type: user_selections['fs_type']}
+      para = {kname: kname, fs_type: user_selections['fs_type'], label: label}
       job_name = :format_job
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Job_name = #{job_name}, para = #{para}"
-      jobs_queue.enqueue({job_name: job_name,job_para: para})
+      jobs_queue.enqueue({job_name: job_name, job_para: para})
     end
 
-    if user_selections["option"]
-      para = {kname: kname}
+    if user_selections['option']
+      para = {kname: kname, label: label}
       job_name = :mount_job
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Job_name = #{job_name}, para = #{para}"
-      jobs_queue.enqueue({job_name: job_name,job_para: para})
+      jobs_queue.enqueue({job_name: job_name, job_para: para})
     end
     result = jobs_queue.process_queue disk
     if result == true
@@ -82,13 +86,14 @@ class DiskWizardsController < ApplicationController
 
   def done
     @operations = DiskCommand.operations_log
-    flash[:success] = "All disks operations has been completed successfully!"
+    flash[:success] = 'All disks operations has been completed successfully!'
     @user_selections = self.user_selections
   end
 
   def user_selections
     return JSON.parse session[:user_selections] rescue nil
   end
+
   helper_method :user_selections
 
   def user_selections=(hash)
@@ -97,7 +102,7 @@ class DiskWizardsController < ApplicationController
       session[:user_selections] = hash.to_json and return
     end
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:New hash= #{hash}"
-    hash.each do |key,value|
+    hash.each do |key, value|
       current_user_selections[key] = value
     end
     session[:user_selections] = current_user_selections.to_json
@@ -120,9 +125,9 @@ class DiskWizardsController < ApplicationController
   def debug_info
     require "open3"
     script_location = "/var/hda/apps/520ut3lo6w/elevated/"
-    Open3.popen3("sudo","./debug_info.sh",:chdir=>script_location) {|stdin, stdout, stderr, wait_thr|
+    Open3.popen3("sudo", "./debug_info.sh", :chdir => script_location) { |stdin, stdout, stderr, wait_thr|
       exit_status = wait_thr.value.exitstatus
-      if not(exit_status.equal? 0)
+      if not (exit_status.equal? 0)
         error = stderr.read
         render json: {error: error}
         return false
