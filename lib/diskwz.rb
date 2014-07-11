@@ -214,7 +214,7 @@ class Diskwz
       parted = DiskCommand.new command, params
       parted.execute
       raise "Command execution error: #{parted.stderr.read}" if not parted.success?
-      probe_kernal partition
+      probe_kernal partition.disk
     end
 
     def probe_kernal device = nil

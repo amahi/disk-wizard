@@ -66,9 +66,13 @@ class JobQueue
       begin
         disk.send(job[:job_name],job[:job_para])
       rescue => exception
-        DebugLogger.info "|#{self.class.name}|>|#{__method__}|:JOB FAILS #{exception.inspect}"
+        backTrace = exception.backtrace.map{ |x|
+          x.match(/^(.+?):(\d+)(|:in `(.+)')$/);
+          [$1,$2,$4]
+        }
+        DebugLogger.info "|#{self.class.name}|>|#{__method__}|:JOB FAILS #{exception.inspect}\n---Backtrace---\n#{backTrace.first(4)}"
         if DiskCommand.debug_mode
-          DebugLogger.info "Exception: #{exception.inspect}"
+          DebugLogger.info "Exception: #{exception.inspect}\n---Backtrace---\n#{backTrace.first(4)}"
           DiskCommand.operations_log.push({}) unless DiskCommand.operations_log.last
           DiskCommand.operations_log.last[:exception] = exception.inspect
           next

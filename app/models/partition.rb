@@ -23,7 +23,7 @@ class Partition
   # available: Available free space in the partition in kilobytes(KB)
   # type: One of the types in @@types Hash
   # kname: Kernal name, name given by linux kernal (i.e. sda1, hda1 etc..)
-  attr_reader :fstype, :label, :size, :mountpoint, :used, :available, :type
+  attr_reader :fstype, :label, :size, :mountpoint, :used, :available, :type, :uuid
   attr_accessor :kname
 
   # PartitionType Globally accessible Hash constant holds the type of partitions which are supported by disk-wizard

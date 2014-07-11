@@ -148,7 +148,6 @@ class Device #< ActiveRecord::Base
   end
 
   def format_job params_hash
-    unmount if mountpoint #Unmount from previous mount point
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Params_hash #{params_hash}"
     new_fstype = params_hash[:fs_type]
     Device.progress = 10
@@ -161,7 +160,6 @@ class Device #< ActiveRecord::Base
   end
 
   def mount_job params_hash
-    unmount if mountpoint #Unmount from previous mount point
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Params_hash #{params_hash}"
     Device.progress = 60
     kname = @kname
