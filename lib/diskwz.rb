@@ -32,26 +32,26 @@ class Diskwz
       lsblk.result.each_line do |line|
         data_hash = {}
         line.squish!
-        line_data = line.gsub!(/"(.*?)"/,'\1,').split ","
+        line_data = line.gsub!(/"(.*?)"/, '\1,').split ","
         for data in line_data
           data.strip!
-          key , value = data.split "="
+          key, value = data.split "="
           data_hash[key.downcase] = value
         end
         data_hash['rm'] = data_hash['rm'].to_i
         if data_hash['type'] == "disk"
-          data_hash.except!('uuid','label','mountpoint','fstype')
+          data_hash.except!('uuid', 'label', 'mountpoint', 'fstype')
           unless disk.nil?
             disks.push disk
             disk = nil # cleanup the variable
           end
-        disk = data_hash
-        next
+          disk = data_hash
+          next
         end
         if data_hash['type'] == "part"
           data_hash.except!('model')
           data_hash.merge! self.usage data_hash['kname']
-          disk["partitions"].nil? ?  disk["partitions"] = [data_hash] : disk["partitions"].push(data_hash)
+          disk["partitions"].nil? ? disk["partitions"] = [data_hash] : disk["partitions"].push(data_hash)
         end
       end
       disks.push disk
@@ -70,8 +70,8 @@ class Diskwz
       raise "Command execution error: #{df.stderr.read}" if not df.success?
       line = df.result.lines.pop
       line.gsub!(/"/, '')
-      df_data =  line.split(" ")
-      return {'used'=> df_data[2].to_i,'available'=> df_data[3].to_i}
+      df_data = line.split(" ")
+      return {'used' => df_data[2].to_i, 'available' => df_data[3].to_i}
     end
 
     def find kname
@@ -84,8 +84,8 @@ class Diskwz
       lsblk.execute
       raise "Command execution error: #{lsblk.stderr.read}" if not lsblk.success?
       if lsblk.success == -1
-        disk = {"model"=>"N/A", "type"=>"disk", "size"=>nil, "kname"=>"#{kname}", "rm"=>nil, "partitions"=>[]}
-        partition = {"type"=>"part", "size"=>nil, "kname"=>"#{kname}", "uuid"=>"N/A", "label"=>nil, "mountpoint"=>nil, "fstype"=>nil, "rm"=>nil, "used"=>nil, "available"=>nil}
+        disk = {"model" => "N/A", "type" => "disk", "size" => nil, "kname" => "#{kname}", "rm" => nil, "partitions" => []}
+        partition = {"type" => "part", "size" => nil, "kname" => "#{kname}", "uuid" => "N/A", "label" => nil, "mountpoint" => nil, "fstype" => nil, "rm" => nil, "used" => nil, "available" => nil}
         return partition ? partition : disk
       end
       partitions = []
@@ -93,22 +93,22 @@ class Diskwz
       lsblk.result.each_line do |line|
         data_hash = {}
         line.squish!
-        line_data = line.gsub!(/"(.*?)"/,'\1,').split ","
+        line_data = line.gsub!(/"(.*?)"/, '\1,').split ","
         for data in line_data
           data.strip!
-          key , value = data.split "="
+          key, value = data.split "="
           data_hash[key.downcase] = value
         end
         data_hash['rm'] = data_hash['rm'].to_i
         if data_hash['type'] == "disk"
-          data_hash.except!('uuid','label','mountpoint','fstype')
+          data_hash.except!('uuid', 'label', 'mountpoint', 'fstype')
           disk = data_hash
           next
         end
         if data_hash['type'] == "part"
           data_hash.except!('model')
           data_hash.merge! self.usage data_hash['kname']
-        partitions.push(data_hash)
+          partitions.push(data_hash)
         end
       end
       disk['partitions'] = partitions if disk
@@ -122,8 +122,8 @@ class Diskwz
         command = "parted"
         params = "--script /dev/#{kname} print"
       end
-      parted = DiskCommand.new command,params
-      parted.execute  false, false # None blocking and not debug mode
+      parted = DiskCommand.new command, params
+      parted.execute false, false # None blocking and not debug mode
       return false if not parted.success?
 
       parted.result.each_line do |line|
@@ -140,7 +140,7 @@ class Diskwz
       kname = get_kname disk
       command = "umount"
       params = " -fl /dev/#{kname}"
-      umount = DiskCommand.new command,params
+      umount = DiskCommand.new command, params
       #TODO: This should be a none-blocking call, until unmount the disk/device successfully, can't proceed with other works
       umount.execute
       raise "Command execution error: #{umount.stderr.read}" if not umount.success?
@@ -150,14 +150,14 @@ class Diskwz
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Init Fstab disk.path = #{disk.path}"
       fstab = Fstab.new
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Add_fs mount_point #{mount_point}"
-      fstab.add_fs(disk.path,mount_point,'auto','auto,rw,exec',0,0)
+      fstab.add_fs(disk.path, mount_point, 'auto', 'auto,rw,exec', 0, 0)
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Create directory mount_point = #{mount_point}"
       create_directory mount_point unless File.directory?(mount_point)
 
       #remount all
       command = "mount"
       params = "#{disk.path} #{mount_point}"
-      mount = DiskCommand.new command,params
+      mount = DiskCommand.new command, params
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Mount executing"
       mount.execute
       raise "Command execution error: #{mount.stderr.read}" if not mount.success?
@@ -198,7 +198,7 @@ class Diskwz
     end
 
 
-    def create_partition_table device,type = 'msdos'
+    def create_partition_table device, type = 'msdos'
       command = 'parted'
       params = "--script #{device.path} mklabel #{type}"
       parted = DiskCommand.new command, params
@@ -225,6 +225,18 @@ class Diskwz
       raise "Command execution error: #{partprobe.stderr.read}" if not partprobe.success?
     end
 
+    def check_service serive_name
+      return systemctl_wrapper serive_name, 'show'
+    end
+
+    def start_service serive_name
+      systemctl_wrapper serive_name, 'start'
+    end
+
+    def stop_service serive_name
+      systemctl_wrapper serive_name, 'stop'
+    end
+
     private
 
     def get_kname disk
@@ -244,6 +256,28 @@ class Diskwz
       raise "Command execution error: #{mkdir.stderr.read}" if not mkdir.success?
     end
 
+    def systemctl_wrapper systemd_name, action
+      pid = nil
+      active = nil
+      command = "systemctl"
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:systemd_name = #{systemd_name}, action = #{action}"
+      case action
+        when 'show'
+          params = " --property=Description,MainPID,ActiveState,SubState #{action} #{systemd_name}"
+        else
+          params = " #{action} #{systemd_name}"
+      end
+      systemctl = DiskCommand.new command, params
+      systemctl.execute
+      raise "Command execution error: #{systemctl.stderr.read}" if not systemctl.success?
+      if action == 'show'
+        _, description = systemctl.result.lines[0].squish!.split('=')
+        _, active = systemctl.result.lines[1].squish!.split('=')
+        _, state = systemctl.result.lines[2].squish!.split('=')
+        _, pid = systemctl.result.lines[3].squish!.split('=')
+        return {description: description, pid: pid.to_i, active_state: active, state: state}
+      end
+    end
   end
-
 end
+
