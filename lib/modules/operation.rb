@@ -31,6 +31,23 @@ module Operation
     base.extend(ClassMethods)
   end
 
+  def pre_checks_job params_hash
+    # TODO: Implement rollback mechanism, if something went wrong bring back the system to original state,where it was before stating DW
+    # TODO/Suggestion: Acquire a lock through 'flock()',for the device/partition involved.
+    multipathd_status = Diskwz.check_service 'multipathd'
+    if not multipathd_status[:pid].equal? 0
+      Diskwz.stop_service 'multipathd'
+    end
+  end
+
+  def post_checks_job params_hash
+    # TODO: Only revert the changes which was done by DW itself.
+    multipathd_status = Diskwz.check_service 'multipathd'
+    if multipathd_status[:pid].equal? 0
+      Diskwz.start_service 'multipathd'
+    end
+  end
+
   module ClassMethods
     def find disk
       data_hash = Diskwz.find disk

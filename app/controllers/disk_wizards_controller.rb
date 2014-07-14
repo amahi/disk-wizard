@@ -53,6 +53,7 @@ class DiskWizardsController < ApplicationController
     DiskCommand.debug_mode = !!(self.user_selections['debug'])
 
     jobs_queue = JobQueue.new(user_selections.length)
+    jobs_queue.enqueue({job_name: :pre_checks_job, job_para: {kname: kname}})
     Device.progress = 0
 
     if user_selections['format']
@@ -68,6 +69,8 @@ class DiskWizardsController < ApplicationController
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Job_name = #{job_name}, para = #{para}"
       jobs_queue.enqueue({job_name: job_name, job_para: para})
     end
+
+    jobs_queue.enqueue({job_name: :post_checks_job, job_para: {kname: kname}})
     result = jobs_queue.process_queue disk
     if result == true
       Device.progress = 100

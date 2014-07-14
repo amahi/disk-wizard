@@ -237,6 +237,7 @@ class Diskwz
       systemctl_wrapper serive_name, 'stop'
     end
 
+
     private
 
     def get_kname disk
