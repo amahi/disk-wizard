@@ -90,6 +90,8 @@ class Partition
 
   # Absolute path to filesystem representation of devices your system understands
   def path
+    # Get path by UUID
+    path  = Diskwz.get_path
     return "/dev/#{@kname}"
   end
 

@@ -75,6 +75,7 @@ class Diskwz
     end
 
     def find kname
+      # TODO: Not a reliable way of identifying a partition, use OOP kind_of 'Partition' or 'Device' method instead
       partition = kname =~ /[0-9]\z/ ? true : false
       if DEBUG_MODE or Platform.ubuntu? or Platform.fedora?
         command = "lsblk"
@@ -120,19 +121,17 @@ class Diskwz
       kname = get_kname disk
       if DEBUG_MODE or Platform.ubuntu? or Platform.fedora?
         command = "parted"
-        params = "--script /dev/#{kname} print"
+        params = "-sm /dev/#{kname} unit b  print free"  # -s for --script and -m for --machine
       end
       parted = DiskCommand.new command, params
       parted.execute false, false # None blocking and not debug mode
       return false if not parted.success?
 
-      parted.result.each_line do |line|
-        if line.strip =~ /^Partition Table:/
-          #TODO: Need to test for all the types of partition tables
-          table_type = line.match(/^Partition Table:(.*)/i).captures[0].strip
-          return table_type
-        end
-      end
+      # REFERENCE: http://lists.alioth.debian.org/pipermail/parted-devel/2006-December/000573.html
+      # Output format "path":"size":"transport-type":"logical-sector-size":"physical-sector-size":"partition-table-type":"model-name";
+      device_info = parted.result.lines[1].squish.split ':' # Remove trailing newline character(s)
+      table_type = device_info[5]
+      return table_type
     end
 
     def umount disk
@@ -226,6 +225,7 @@ class Diskwz
     end
 
     def check_service serive_name
+      # TODO: Before starting a service check service availability.
       return systemctl_wrapper serive_name, 'show'
     end
 
