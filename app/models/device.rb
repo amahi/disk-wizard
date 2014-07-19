@@ -2,7 +2,7 @@
 # inheriting ActiveRecord::Base is not necessary
 class Device #< ActiveRecord::Base
   include Operation
-  attr_reader :model, :size, :rm
+  attr_reader :model, :size, :rm, :mkname, :multipath
   attr_accessor :kname, :partitions
 
   def initialize disk
@@ -72,15 +72,6 @@ class Device #< ActiveRecord::Base
     current_progress = Setting.find_by_kind_and_name('disk_wizard', 'operation_progress')
     return 0 unless current_progress
     current_progress.value.to_i
-  end
-
-  def path
-    if @kname =~ /(\/\w+\/).+/
-      path = @kname
-    else
-      path = "/dev/%s" % @kname
-    end
-    return path
   end
 
   def Device.progress_message(percent)

@@ -48,6 +48,13 @@ module Operation
     end
   end
 
+
+  # Absolute path to filesystem representation of devices your system understands
+  def path
+    # Get path by UUID
+    return Diskwz.get_path self
+  end
+
   module ClassMethods
     def find disk
       data_hash = Diskwz.find disk

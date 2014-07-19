@@ -74,44 +74,56 @@ class Diskwz
       return {'used' => df_data[2].to_i, 'available' => df_data[3].to_i}
     end
 
-    def find kname
+    def find path
       # TODO: Not a reliable way of identifying a partition, use OOP kind_of 'Partition' or 'Device' method instead
-      partition = kname =~ /[0-9]\z/ ? true : false
+      partition = path =~ /[0-9]\z/ ? true : false
       if DEBUG_MODE or Platform.ubuntu? or Platform.fedora?
         command = "lsblk"
-        params = "/dev/#{kname} -bPo MODEL,TYPE,SIZE,KNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM"
+        params = "#{path} -bPo MODEL,TYPE,SIZE,KNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM"
       end
       lsblk = DiskCommand.new command, params
       lsblk.execute
       raise "Command execution error: #{lsblk.stderr.read}" if not lsblk.success?
       if lsblk.success == -1
-        disk = {"model" => "N/A", "type" => "disk", "size" => nil, "kname" => "#{kname}", "rm" => nil, "partitions" => []}
-        partition = {"type" => "part", "size" => nil, "kname" => "#{kname}", "uuid" => "N/A", "label" => nil, "mountpoint" => nil, "fstype" => nil, "rm" => nil, "used" => nil, "available" => nil}
+        disk = {"model" => "N/A", "type" => "disk", "size" => nil, "kname" => "#{path}", "rm" => nil, "partitions" => []}
+        partition = {"type" => "part", "size" => nil, "kname" => "#{path}", "uuid" => "N/A", "label" => nil, "mountpoint" => nil, "fstype" => nil, "rm" => nil, "used" => nil, "available" => nil}
         return partition ? partition : disk
       end
       partitions = []
       disk = nil
+
       lsblk.result.each_line do |line|
         data_hash = {}
         line.squish!
         line_data = line.gsub!(/"(.*?)"/, '\1,').split ","
         for data in line_data
           data.strip!
-          key, value = data.split "="
+          key, value = data.split '='
           data_hash[key.downcase] = value
         end
         data_hash['rm'] = data_hash['rm'].to_i
-        if data_hash['type'] == "disk"
+        if data_hash['type'] == 'disk'
           data_hash.except!('uuid', 'label', 'mountpoint', 'fstype')
           disk = data_hash
           next
         end
-        if data_hash['type'] == "part"
+        if data_hash['type'] == 'mpath'
+          multipath_info = {'mkname' => data_hash['kname'],'multipath' => true}
+          if disk
+            disk.merge! multipath_info
+          else
+            disk = multipath_info
+          end
+          next
+        end
+
+        if data_hash['type'] == 'part'
           data_hash.except!('model')
           data_hash.merge! self.usage data_hash['kname']
           partitions.push(data_hash)
         end
       end
+
       disk['partitions'] = partitions if disk
       partitions = partitions[0] if partition
       return disk || partitions
@@ -121,7 +133,7 @@ class Diskwz
       kname = get_kname disk
       if DEBUG_MODE or Platform.ubuntu? or Platform.fedora?
         command = "parted"
-        params = "-sm /dev/#{kname} unit b  print free"  # -s for --script and -m for --machine
+        params = "-sm /dev/#{kname} unit b  print free"  # Use parted machine parseable output,independent from O/S language -s for --script and -m for --machine
       end
       parted = DiskCommand.new command, params
       parted.execute false, false # None blocking and not debug mode
@@ -237,14 +249,28 @@ class Diskwz
       systemctl_wrapper serive_name, 'stop'
     end
 
+    def get_path device
+      if device.kind_of? Partition
+        uuid = device.uuid
+        params = "-U #{uuid} -c /dev/null"
+      else
+        kname = device.kname || device.mkname
+        return "/dev/#{kname}"
+      end
+      command = "blkid"
+      blkid = DiskCommand.new command, params
+      blkid.execute
+      raise "Command execution error: #{blkid.stderr.read}" if not blkid.success?
+      return blkid.result.lines.first.squish!
+    end
 
     private
 
-    def get_kname disk
-      if disk.kind_of? Device or disk.kind_of? Partition
-        kname = disk.kname
+    def get_kname device
+      if device.kind_of? Device or device.kind_of? Partition
+        kname = device.kname
       else
-        kname = disk
+        kname = device
       end
       return kname
     end

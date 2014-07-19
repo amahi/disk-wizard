@@ -88,13 +88,6 @@ class Partition
     return @disk
   end
 
-  # Absolute path to filesystem representation of devices your system understands
-  def path
-    # Get path by UUID
-    path  = Diskwz.get_path
-    return "/dev/#{@kname}"
-  end
-
   def format_job params_hash
     Device.progress = 10
     unmount if mountpoint
@@ -124,9 +117,9 @@ class Partition
   def get_disk
     #Strip partition number
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:@Kname = #{@kname}"
-    disk_kname = @kname.gsub(/[0-9]/, "")
-    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Disk_kname = #{disk_kname}"
-    disk = Device.find disk_kname
+    path = self.path.gsub(/[0-9]/, "")
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Disk_kname = #{path}"
+    disk = Device.find path
     return disk
   end
 end
