@@ -19,11 +19,12 @@ class Diskwz
     # Return an array of all the attached devices, including hard disks,flash/removable/external devices etc.
     def all_devices
       partitions = []
-      disks = []
-      disk = nil
+      devices = []
+      device = nil
+      has_extended = false
       if DEBUG_MODE or Platform.ubuntu? or Platform.fedora?
         command = "lsblk"
-        params = "-b -P -o MODEL,TYPE,SIZE,KNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM"
+        params = "-b -P -o VENDOR,MODEL,TYPE,SIZE,KNAME,PKNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM"
       end
       lsblk = DiskCommand.new command, params
       lsblk.execute
@@ -32,30 +33,59 @@ class Diskwz
       lsblk.result.each_line do |line|
         data_hash = {}
         line.squish!
-        line_data = line.gsub!(/"(.*?)"/, '\1,').split ","
-        for data in line_data
+        line_data = line.gsub!(/"(.*?)"/, '\1#').split "#"
+        line_data.each do |data|
           data.strip!
           key, value = data.split "="
           data_hash[key.downcase] = value
         end
-        data_hash['rm'] = data_hash['rm'].to_i
-        if data_hash['type'] == "disk"
-          data_hash.except!('uuid', 'label', 'mountpoint', 'fstype')
-          unless disk.nil?
-            disks.push disk
-            disk = nil # cleanup the variable
+        data_hash['rm'] = data_hash['rm'].to_i # rm = 1 if device is a removable/flash device, otherwise 0
+        if data_hash['type'] == 'disk'
+          data_hash.except!('uuid', 'label', 'mountpoint', 'fstype', 'pkname')
+          unless device.nil?
+            devices.push device
+            device = nil # cleanup the variable
           end
-          disk = data_hash
+          device = data_hash
           next
         end
-        if data_hash['type'] == "part"
-          data_hash.except!('model')
+        if data_hash['type'] == 'part'
+          data_hash.except!('model', 'vendor')
           data_hash.merge! self.usage data_hash['kname']
-          disk["partitions"].nil? ? disk["partitions"] = [data_hash] : disk["partitions"].push(data_hash)
+
+          partition_number = data_hash['kname'].match(/[0-9]*$/)[0].to_i
+          extended_partition_types = ['0x05'.hex, '0x0F'.hex]
+          if partition_type_hex(data_hash['kname']).in? extended_partition_types
+            has_extended = true
+            next
+          end
+          if has_extended and partition_number > 4
+            data_hash['logical'] = true
+          end
+          device['partitions'].nil? ? device['partitions'] = [data_hash] : device["partitions"].push(data_hash)
         end
       end
-      disks.push disk
-      return disks
+      devices.push device
+      return devices
+    end
+
+    # TODO: move to private methods section
+    def partition_type_hex kname
+      # Return Hex value of the partition type.Reliable compared to pure tex comparison.
+      # Reference: https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/5/html/Installation_Guide/ch-partitions-x86.html#tb-partitions-types-x86
+      if DEBUG_MODE or Platform.ubuntu? or Platform.fedora?
+        command = "udevadm"
+        params = " info  --query=property --name=#{kname}"
+      end
+      udevadm = DiskCommand.new command, params
+      udevadm.execute false, false # None blocking and not debug mode
+      raise "Command execution error: #{udevadm.stderr.read}" if not udevadm.success?
+      udevadm.result.each_line do |line|
+        line.squish!
+        key = 'ID_PART_ENTRY_TYPE'
+        _key, value = line.split '='
+        return value.hex if _key.eql? key
+      end
     end
 
     def usage disk
@@ -79,7 +109,7 @@ class Diskwz
       partition = path =~ /[0-9]\z/ ? true : false
       if DEBUG_MODE or Platform.ubuntu? or Platform.fedora?
         command = "lsblk"
-        params = "#{path} -bPo MODEL,TYPE,SIZE,KNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM"
+        params = "#{path} -bPo VENDOR,MODEL,TYPE,SIZE,KNAME,PKNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM"
       end
       lsblk = DiskCommand.new command, params
       lsblk.execute
@@ -95,7 +125,7 @@ class Diskwz
       lsblk.result.each_line do |line|
         data_hash = {}
         line.squish!
-        line_data = line.gsub!(/"(.*?)"/, '\1,').split ","
+        line_data = line.gsub!(/"(.*?)"/, '\1#').split '#'
         for data in line_data
           data.strip!
           key, value = data.split '='
@@ -108,7 +138,7 @@ class Diskwz
           next
         end
         if data_hash['type'] == 'mpath'
-          multipath_info = {'mkname' => data_hash['kname'],'multipath' => true}
+          multipath_info = {'mkname' => data_hash['kname'], 'multipath' => true}
           if disk
             disk.merge! multipath_info
           else
@@ -133,7 +163,7 @@ class Diskwz
       kname = get_kname disk
       if DEBUG_MODE or Platform.ubuntu? or Platform.fedora?
         command = "parted"
-        params = "-sm /dev/#{kname} unit b  print free"  # Use parted machine parseable output,independent from O/S language -s for --script and -m for --machine
+        params = "-sm /dev/#{kname} unit b  print free" # Use parted machine parseable output,independent from O/S language -s for --script and -m for --machine
       end
       parted = DiskCommand.new command, params
       parted.execute false, false # None blocking and not debug mode
@@ -199,6 +229,7 @@ class Diskwz
     end
 
     #TODO: Need more testing
+    #TODO: align partitions on 1MiB (2048-sector) boundaries
     def create_partition device, start_block, end_block
       command = 'parted'
       params = "-s -a optimal #{device.path} mkpart primary ext3 #{start_block} -- #{end_block}"
@@ -250,11 +281,15 @@ class Diskwz
     end
 
     def get_path device
-      if device.kind_of? Partition
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:device = #{device.kname}, uuid = #{device.uuid}"
+      if device.kind_of? Partition and device.uuid
         uuid = device.uuid
         params = "-U #{uuid} -c /dev/null"
+        DebugLogger.info "|#{self.class.name}|>|#{__method__}|:device = #{device.kname}, uuid = #{device.uuid}, params = #{params}"
       else
         kname = device.kname || device.mkname
+        # TODO: find path,devices who don't have UUID
+        DebugLogger.info "|#{self.class.name}|>|#{__method__}|:device return value(if not object type Partition) = #{kname}"
         return "/dev/#{kname}"
       end
       command = "blkid"
