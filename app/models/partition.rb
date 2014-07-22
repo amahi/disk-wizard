@@ -23,7 +23,10 @@ class Partition
   # available: Available free space in the partition in kilobytes(KB)
   # type: One of the types in @@types Hash
   # kname: Kernal name, name given by linux kernal (i.e. sda1, hda1 etc..)
-  attr_reader :fstype, :label, :size, :mountpoint, :used, :available, :type, :uuid, :logical
+  # uuid: Filesystem UUID of the partition,If partition do not have a valid filesystem type or partition is corrupted this attribute will be missing
+  # logical: Boolean attribute, weather a partition is a logical(Within extended partition) or not.(Only applicable for MBR/DOS partition table)
+  # pkname: kname(kernal name) of the parent disk,Disk which the partition belongs to.
+  attr_reader :fstype, :label, :size, :mountpoint, :used, :available, :type, :uuid, :logical, :pkname
   attr_accessor :kname
 
   # PartitionType Globally accessible Hash constant holds the type of partitions which are supported by disk-wizard

@@ -260,11 +260,13 @@ class Diskwz
     end
 
     def probe_kernal device = nil
-      command = 'partprobe'
-      params = device ? device.path : nil
-      partprobe = DiskCommand.new command, params
-      partprobe.execute
-      raise "Command execution error: #{partprobe.stderr.read}" if not partprobe.success?
+      commands = {partprobe: nil,udevadm: ' trigger'}
+      commands[:hdparm] = ' trigger -z #{device}' if not device.nil? # Do not execute 'hdparm' when device/partition is not given.
+      commands.each do |command,args|
+        executor = DiskCommand.new(command, args)
+        executor.execute()
+        DebugLogger.info "Command execution error: #{executor.stderr.read}" if not executor.success? # Suppress warnings and errors,don't re-raise the exception.only do notify the kernel,Warnings and errors are out of the DW scope
+      end
     end
 
     def check_service serive_name
@@ -281,8 +283,8 @@ class Diskwz
     end
 
     def get_path device
-      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:device = #{device.kname}, uuid = #{device.uuid}"
-      if device.kind_of? Partition and device.uuid
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:device = #{device.kname}, uuid = #{device.try :uuid}"
+      if device.kind_of? Partition and device.try :uuid
         uuid = device.uuid
         params = "-U #{uuid} -c /dev/null"
         DebugLogger.info "|#{self.class.name}|>|#{__method__}|:device = #{device.kname}, uuid = #{device.uuid}, params = #{params}"

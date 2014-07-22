@@ -2,7 +2,7 @@
 # inheriting ActiveRecord::Base is not necessary
 class Device #< ActiveRecord::Base
   include Operation
-  attr_reader :model, :size, :rm, :mkname, :multipath
+  attr_reader :model, :size, :rm, :mkname, :multipath, :vendor
   attr_accessor :kname, :partitions
 
   def initialize disk
