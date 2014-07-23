@@ -17,14 +17,15 @@ class Diskwz
   class << self
     DEBUG_MODE = true #TODO: Allow dynamically set value
     # Return an array of all the attached devices, including hard disks,flash/removable/external devices etc.
-    def all_devices
+    # If search is given only search for the given path.
+    def all_devices search = nil
       partitions = []
       devices = []
       device = nil
       has_extended = false
       if DEBUG_MODE or Platform.ubuntu? or Platform.fedora?
         command = "lsblk"
-        params = "-b -P -o VENDOR,MODEL,TYPE,SIZE,KNAME,PKNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM"
+        params = " #{search} -b -P -o VENDOR,MODEL,TYPE,SIZE,KNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM"
       end
       lsblk = DiskCommand.new command, params
       lsblk.execute
@@ -40,9 +41,23 @@ class Diskwz
           data_hash[key.downcase] = value
         end
         data_hash['rm'] = data_hash['rm'].to_i # rm = 1 if device is a removable/flash device, otherwise 0
+        if data_hash['type'] == 'mpath'
+          data_hash.except!('uuid', 'label', 'mountpoint', 'fstype')
+          if device
+            multipath_info = {'mkname' => data_hash['kname'], 'multipath' => true, 'size' => data_hash['size']}
+            device.merge! multipath_info
+          else
+            data_hash['multipath'] = true
+            device = data_hash
+            devices.push device
+          end
+          next
+        end
         if data_hash['type'] == 'disk'
-          data_hash.except!('uuid', 'label', 'mountpoint', 'fstype', 'pkname')
+          data_hash.except!('uuid', 'label', 'mountpoint', 'fstype')
           unless device.nil?
+            device['partitions'] = partitions
+            partitions = []
             devices.push device
             device = nil # cleanup the variable
           end
@@ -62,11 +77,17 @@ class Diskwz
           if has_extended and partition_number > 4
             data_hash['logical'] = true
           end
-          device['partitions'].nil? ? device['partitions'] = [data_hash] : device["partitions"].push(data_hash)
+          # device['partitions'].nil? ? device['partitions'] = [data_hash] : device['partitions'].push(data_hash)
+          partitions.push(data_hash)
         end
       end
+      device['partitions'] = partitions if device
       devices.push device
-      return devices
+      if search
+        return devices.first || partitions.first
+      else
+        return devices
+      end
     end
 
     # TODO: move to private methods section
@@ -109,7 +130,7 @@ class Diskwz
       partition = path =~ /[0-9]\z/ ? true : false
       if DEBUG_MODE or Platform.ubuntu? or Platform.fedora?
         command = "lsblk"
-        params = "#{path} -bPo VENDOR,MODEL,TYPE,SIZE,KNAME,PKNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM"
+        params = "#{path} -bPo VENDOR,MODEL,TYPE,SIZE,KNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM"
       end
       lsblk = DiskCommand.new command, params
       lsblk.execute
@@ -121,7 +142,7 @@ class Diskwz
       end
       partitions = []
       disk = nil
-
+      has_extended = false
       lsblk.result.each_line do |line|
         data_hash = {}
         line.squish!
@@ -260,9 +281,9 @@ class Diskwz
     end
 
     def probe_kernal device = nil
-      commands = {partprobe: nil,udevadm: ' trigger'}
+      commands = {partprobe: nil, udevadm: ' trigger'}
       commands[:hdparm] = ' trigger -z #{device}' if not device.nil? # Do not execute 'hdparm' when device/partition is not given.
-      commands.each do |command,args|
+      commands.each do |command, args|
         executor = DiskCommand.new(command, args)
         executor.execute()
         DebugLogger.info "Command execution error: #{executor.stderr.read}" if not executor.success? # Suppress warnings and errors,don't re-raise the exception.only do notify the kernel,Warnings and errors are out of the DW scope
@@ -299,6 +320,44 @@ class Diskwz
       blkid.execute
       raise "Command execution error: #{blkid.stderr.read}" if not blkid.success?
       return blkid.result.lines.first.squish!
+    end
+
+    # Return parent path which can be used with Device.find method to find the device hash
+    def get_parent child_path
+      if DEBUG_MODE or Platform.ubuntu? or Platform.fedora?
+        command = "udevadm"
+        params = " info  --query=property --name=#{child_path}"
+      end
+      udevadm = DiskCommand.new command, params
+      udevadm.execute false, false # None blocking and not debug mode
+      raise "Command execution error: #{udevadm.stderr.read}" if not udevadm.success?
+      udevadm.result.each_line do |line|
+        line.squish!
+        key = 'ID_PART_ENTRY_DISK'
+        _key, value = line.split '='
+        parent_maj_min = value and break if _key.eql? key
+      end
+
+      if DEBUG_MODE or Platform.ubuntu? or Platform.fedora?
+        command = "lsblk"
+        params = " -b -P -o VENDOR,MODEL,TYPE,SIZE,KNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM,MAJ:MIN"
+      end
+      lsblk = DiskCommand.new command, params
+      lsblk.execute
+      raise "Command execution error: #{lsblk.stderr.read}" if not lsblk.success?
+
+      lsblk.result.each_line do |line|
+        data_hash = {}
+        line.squish!
+        line_data = line.gsub!(/"(.*?)"/, '\1#').split "#"
+        line_data.each do |data|
+          data.strip!
+          key, value = data.split "="
+          data_hash[key.downcase] = value
+          return data_hash['kname'] if value == parent_maj_min
+        end
+      end
+
     end
 
     private

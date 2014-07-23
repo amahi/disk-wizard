@@ -114,6 +114,12 @@ class Partition
     return partition_number_string[0].to_i
   end
 
+  # Get parent device which the partition belongs to
+  def device
+    # TODO: Return device object not kname string
+    return Diskwz.get_parent self.path
+  end
+
   private
 
   # Return the `Disk` object of which this Partition belongs to

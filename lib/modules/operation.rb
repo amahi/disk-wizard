@@ -55,9 +55,10 @@ module Operation
     return Diskwz.get_path self
   end
 
+
   module ClassMethods
-    def find disk
-      data_hash = Diskwz.find disk
+    def find node
+      data_hash = Diskwz.all_devices node
       if data_hash['type'].eql? 'part'
         return Partition.new data_hash
       else
