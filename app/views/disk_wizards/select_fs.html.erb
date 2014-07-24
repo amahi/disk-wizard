@@ -118,8 +118,8 @@
                   }
                   $('input.format').not(this).prop('checked', false);
                   $("#proceed").html("Next");
-                  var kname = row.attr("kname");
-                  $("#partition").attr("value", kname);
+                  var path = row.attr("path");
+                  $("#partition").attr("value", path);
               }
 
           });
@@ -131,7 +131,7 @@
       });
   </script>
   <%= form_tag(defined?(disk_wizards_engine) ? disk_wizards_engine.manage_path : manage_path, {method: "POST", id: "select_fs", onsubmit: "return check()"}) %>
-  <%= hidden_field_tag 'device', @selected_disk.kname %>
+  <%= hidden_field_tag 'device', @selected_disk.path %>
   <%= hidden_field_tag 'model', @selected_disk.model %>
   <%= hidden_field_tag 'partition', nil %>
   <div class="row col-md-10 col-md-offset-1">
@@ -200,13 +200,13 @@
       <tbody>
       <!--
       device['partitions'] reffrence
-      "TYPE"=>"part", "SIZE"=>"104857600", "KNAME"=>"sda1", "MOUNTPOINT"=>nil, "FSTYPE"=>"devtmpfs"
+      "TYPE"=>"part", "SIZE"=>"104857600", "PATH"=>"/dev/sda1", "MOUNTPOINT"=>nil, "FSTYPE"=>"devtmpfs"
       -->
 
       <%
          unless device.partitions.blank?
            for partition in device.partitions %>
-              <tr style="position: relative;cursor: pointer;" kname=<%= partition.kname %> data-toggle="context" data-target="#contextMenu" class=<%= !!(user_selections['kname'] == partition.kname rescue false) ? "info context" : "context" %>>
+              <tr style="position: relative;cursor: pointer;" path=<%= partition.path %> data-toggle="context" data-target="#contextMenu" class=<%= !!(user_selections['path'] == partition.path rescue false) ? "info context" : "context" %>>
                 <td title="Mount point"> <%= partition.mountpoint || "No mount point" %> </td>
                 <td title="Disk name"> <%= partition.label %> </td>
                 <td>
@@ -217,15 +217,15 @@
 
                 <td title="Total size"> <%= number_to_human_size partition.size %> </td>
                 <td>
-                  <label> <%= check_box_tag(:format, 1, !!(user_selections['format'] && (user_selections['kname'] == partition.kname) rescue false), class: 'format') %> </label>
+                  <label> <%= check_box_tag(:format, 1, !!(user_selections['format'] && (user_selections['path'] == partition.path) rescue false), class: 'format') %> </label>
                 </td>
               </tr>
           <% end %>
       <% end %>
-      <tr style="position: relative;cursor: pointer;" class=<%= !!(user_selections['format'] && (user_selections['partition'] == device.kname) rescue false) ? "danger" : "warning" %> kname=<%= device.kname %> >
+      <tr style="position: relative;cursor: pointer;" class=<%= !!(user_selections['format'] && (user_selections['partition'] == device.path) rescue false) ? "danger" : "warning" %> path=<%= device.path %> >
         <td colspan="4"> Format entire disk</td>
         <td style="width: 1%;">
-          <label> <%= check_box_tag(:format, 1, !!(user_selections['format'] && (user_selections['partition'] == device.kname) rescue false), class: 'format') %> </label>
+          <label> <%= check_box_tag(:format, 1, !!(user_selections['format'] && (user_selections['partition'] == device.path) rescue false), class: 'format') %> </label>
         </td>
       </tr>
       </tbody>

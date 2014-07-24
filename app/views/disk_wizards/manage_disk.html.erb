@@ -14,7 +14,7 @@
 </script>
 <div class="panel-body">
   <%= form_tag(defined?(disk_wizards_engine) ? disk_wizards_engine.confirmation_path : confirmation_path, {method: "POST", id: "options"}) %>
-  <%= hidden_field_tag 'device', user_selections['kname'] %>
+  <%= hidden_field_tag 'device', user_selections['path'] %>
   <div class="row">
     <% "*#{user_selections}" %>
     <div class="col-md-5 col-md-offset-3 well">

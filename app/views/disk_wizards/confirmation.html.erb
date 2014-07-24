@@ -6,7 +6,7 @@
 <%= render 'shared/header' %>
 <div class="panel-body">
   <%= form_tag(defined?(disk_wizards_engine) ? disk_wizards_engine.process_path : process_path, {method: "POST", id: "confirmation"}) %>
-  <%= hidden_field_tag 'device', user_selections['kname'] %>
+  <%= hidden_field_tag 'device', user_selections['path'] %>
   <div class="row">
     <% "*****************#{user_selections} \n ******** #{@selected_disk}>" %>
     <div class="row">
@@ -27,7 +27,7 @@
         <br/>
         <ul class="list-group">
           <li class="list-group-item list-group-item-info text-center">
-            <%= @selected_disk.kind_of?(Device) ? @selected_disk.model : @selected_disk.disk.model %>
+            <%= @selected_disk.kind_of?(Device) ? @selected_disk.model : @selected_disk.device.model %>
           </li>
           <% if user_selections['format'] %>
               <li class="list-group-item text-left">
@@ -51,7 +51,7 @@
               <% end %>
           <% end %>
           <li class="list-group-item text-left">
-            <span class="badge alert-info"> /dev/<%= @selected_disk.kname %> </span> System name
+            <span class="badge alert-info"><%= @selected_disk.path %> </span> System name
           </li>
           <li class="list-group-item text-right">
             <a style="float: left" class="btn btn-default" href=<%= defined?(disk_wizards_engine) ? disk_wizards_engine.manage_path : manage_path %>>

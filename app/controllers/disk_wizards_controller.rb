@@ -15,25 +15,25 @@ class DiskWizardsController < ApplicationController
 
   def select_fs
     device = params[:device]
-    self.user_selections = {kname: device} if device
+    self.user_selections = {path: device} if device
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Device = #{device}"
     if not (device and request.post?)
       redirect_to defined?(disk_wizards_engine) ? disk_wizards_engine.select_path : select_path, :flash => {:error => "Please select a device to continue."}
       return false
     end
-    @selected_disk = Device.find(device || user_selections['kname'])
+    @selected_disk = Device.find(device || user_selections['path'])
   end
 
   def manage_disk
     format = params[:format]
     partition = params[:partition]
     fs_type = params[:fs_type].to_i
-    if (not (fs_type or user_selections['fs_type']) and not user_selections['kname'])
+    if (not (fs_type or user_selections['fs_type']) and not user_selections['path'])
       redirect_to defined?(disk_wizards_engine) ? disk_wizards_engine.file_system_path : file_system_path, :flash => {:error => "Please select a filesystem type to continue."}
       return false
     end
     if request.post?
-      self.user_selections = {fs_type: fs_type, format: format, kname: partition}
+      self.user_selections = {fs_type: fs_type, format: format, path: partition}
     end
   end
 
@@ -41,36 +41,36 @@ class DiskWizardsController < ApplicationController
     option = params[:option]
     label = params[:label].blank? ? nil : params[:label]
     self.user_selections = {option: option, label: label}
-    @selected_disk = Device.find(user_selections['kname'])
+    @selected_disk = Device.find(user_selections['path'])
   end
 
   def process_disk
-    kname = user_selections['kname']
+    path = user_selections['path']
     label = user_selections['label']
-    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Selected disk/partition = #{kname}"
-    disk = Device.find kname
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Selected disk/partition = #{path}"
+    disk = Device.find path
 
     DiskCommand.debug_mode = !!(self.user_selections['debug'])
 
     jobs_queue = JobQueue.new(user_selections.length)
-    jobs_queue.enqueue({job_name: :pre_checks_job, job_para: {kname: kname}})
+    jobs_queue.enqueue({job_name: :pre_checks_job, job_para: {path: path}})
     Device.progress = 0
 
     if user_selections['format']
-      para = {kname: kname, fs_type: user_selections['fs_type'], label: label}
+      para = {path: path, fs_type: user_selections['fs_type'], label: label}
       job_name = :format_job
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Job_name = #{job_name}, para = #{para}"
       jobs_queue.enqueue({job_name: job_name, job_para: para})
     end
 
     if user_selections['option']
-      para = {kname: kname, label: label}
+      para = {path: path, label: label}
       job_name = :mount_job
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Job_name = #{job_name}, para = #{para}"
       jobs_queue.enqueue({job_name: job_name, job_para: para})
     end
 
-    jobs_queue.enqueue({job_name: :post_checks_job, job_para: {kname: kname}})
+    jobs_queue.enqueue({job_name: :post_checks_job, job_para: {path: path}})
     result = jobs_queue.process_queue disk
     if result == true
       Device.progress = 100

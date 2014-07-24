@@ -324,6 +324,7 @@ class Diskwz
 
     # Return parent path which can be used with Device.find method to find the device hash
     def get_parent child_path
+      parent_maj_min = nil
       if DEBUG_MODE or Platform.ubuntu? or Platform.fedora?
         command = "udevadm"
         params = " info  --query=property --name=#{child_path}"
@@ -345,7 +346,6 @@ class Diskwz
       lsblk = DiskCommand.new command, params
       lsblk.execute
       raise "Command execution error: #{lsblk.stderr.read}" if not lsblk.success?
-
       lsblk.result.each_line do |line|
         data_hash = {}
         line.squish!
