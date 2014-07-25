@@ -206,7 +206,7 @@
       <%
          unless device.partitions.blank?
            for partition in device.partitions %>
-              <tr style="position: relative;cursor: pointer;" path=<%= partition.path %> data-toggle="context" data-target="#contextMenu" class=<%= !!(user_selections['path'] == partition.path rescue false) ? "info context" : "context" %>>
+              <tr style="position: relative;cursor: pointer;" path="<%= partition.path %>" data-toggle="context" data-target="#contextMenu" class=<%= !!(user_selections['path'] == partition.path rescue false) ? "info context" : "context" %>>
                 <td title="Mount point"> <%= partition.mountpoint || "No mount point" %> </td>
                 <td title="Disk name"> <%= partition.label %> </td>
                 <td>
@@ -222,7 +222,7 @@
               </tr>
           <% end %>
       <% end %>
-      <tr style="position: relative;cursor: pointer;" class=<%= !!(user_selections['format'] && (user_selections['partition'] == device.path) rescue false) ? "danger" : "warning" %> path=<%= device.path %> >
+      <tr style="position: relative;cursor: pointer;" class=<%= !!(user_selections['format'] && (user_selections['partition'] == device.path) rescue false) ? "danger" : "warning" %> path="<%= device.path %>" >
         <td colspan="4"> Format entire disk</td>
         <td style="width: 1%;">
           <label> <%= check_box_tag(:format, 1, !!(user_selections['format'] && (user_selections['partition'] == device.path) rescue false), class: 'format') %> </label>

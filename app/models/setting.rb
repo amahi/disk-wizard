@@ -2,8 +2,8 @@ class Setting < ActiveRecord::Base
 
   KINDS = [GENERAL = "general", NETWORK = "network", SHARES = "shares"]
 
-  scope :by_name, lambda{|name| where(:name => name)}
-  scope :by_kind, lambda{|kind| where(:kind => kind)}
+  scope :by_name, lambda { |name| where(:name => name) }
+  scope :by_kind, lambda { |kind| where(:kind => kind) }
 
   class << self
     def value_by_name(name)

@@ -52,6 +52,7 @@ class JobQueue
 
     return x
   end
+
   # Resets the queue
   def reset
     @array = Array.new(@length)
@@ -60,19 +61,21 @@ class JobQueue
   end
 
   def process_queue disk
-    while(not self.empty?)
-      job =  self.dequeue
+    while (not self.empty?)
+      job = self.dequeue
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:job[:job_name] = #{job[:job_name]} job[:job_para] = #{job[:job_para]}"
       begin
-        disk.send(job[:job_name],job[:job_para])
+        disk.send(job[:job_name], job[:job_para])
       rescue => exception
-        backTrace = exception.backtrace.map{ |x|
+        backTrace = exception.backtrace.map { |x|
           x.match(/^(.+?):(\d+)(|:in `(.+)')$/);
-          [$1,$2,$4]
+          [$1, $2, $4]
         }
-        DebugLogger.info "|#{self.class.name}|>|#{__method__}|:JOB FAILS #{exception.inspect}\n---Backtrace---\n#{backTrace.first(4)}"
+        trace_tree = ""
+        backTrace.first(6).reverse.each { |exception| trace_tree += exception.to_sentence + "\n" }
+        DebugLogger.info "|#{self.class.name}|>|#{__method__}|:JOB FAILS #{exception.inspect}\n---Backtrace---\n#{trace_tree}"
         if DiskCommand.debug_mode
-          DebugLogger.info "Exception: #{exception.inspect}\n---Backtrace---\n#{backTrace.first(4)}"
+          DebugLogger.info "Exception: #{exception.inspect}\n---Backtrace---\n#{trace_tree}"
           DiskCommand.operations_log.push({}) unless DiskCommand.operations_log.last
           DiskCommand.operations_log.last[:exception] = exception.inspect
           next

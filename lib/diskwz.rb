@@ -125,6 +125,7 @@ class Diskwz
       return {'used' => df_data[2].to_i, 'available' => df_data[3].to_i}
     end
 
+    # Deprecated only for reference
     def find path
       # TODO: Not a reliable way of identifying a partition, use OOP kind_of 'Partition' or 'Device' method instead
       partition = path =~ /[0-9]\z/ ? true : false
@@ -281,8 +282,9 @@ class Diskwz
     end
 
     def probe_kernal device = nil
-      commands = {partprobe: nil, udevadm: ' trigger'}
-      commands[:hdparm] = ' trigger -z #{device}' if not device.nil? # Do not execute 'hdparm' when device/partition is not given.
+      commands = {'partprobe' => '', 'udevadm' => ' trigger'}
+      commands['hdparm'] = ' trigger -z #{device}' if not device.nil? # Do not execute 'hdparm' when device/partition is not given.
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Commands = #{commands}"
       commands.each do |command, args|
         executor = DiskCommand.new(command, args)
         executor.execute()

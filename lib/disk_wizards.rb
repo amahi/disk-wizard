@@ -7,8 +7,8 @@ require "debug_logger.rb"
 require "fstab.rb"
 require 'modules/operation.rb'
 module DiskWizard
-	class Lib
-		# the code for your plugin library here
-		# or inside lib/disk_wizards/whatever.rb and required here
-	end
+  class Lib
+    # the code for your plugin library here
+    # or inside lib/disk_wizards/whatever.rb and required here
+  end
 end

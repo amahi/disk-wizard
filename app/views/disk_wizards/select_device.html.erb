@@ -1,89 +1,94 @@
 <script>
-	$(function() {
-		var rows = $('tr:not(:first)');
-		rows.on('click', function(e) {
-			var row = $(this);
-			$(this).find('td input:radio').prop('checked', true);
-			rows.removeClass('info');
-			row.addClass('info');
-		});
-		$(document).bind('selectstart dragstart', function(e) {
-			e.preventDefault();
-			return false;
-		});
+    $(function () {
+        var rows = $('tr:not(:first)');
+        rows.on('click', function (e) {
+            var row = $(this);
+            $(this).find('td input:radio').prop('checked', true);
+            rows.removeClass('info');
+            row.addClass('info');
+        });
+        $(document).bind('selectstart dragstart', function (e) {
+            e.preventDefault();
+            return false;
+        });
 
-	}); 
+    });
 </script>
 <%= render 'shared/header' %>
 
 <div class="panel-body">
-	<% "*****************#{@new_disks}"%>
+  <% "*****************#{@new_disks}" %>
 
-	<div class="row">
-		<table class="settings table-bordered table table-hover">
-			<thead>
-				<tr data-toggle="collapse" data-target="#demo1" class="accordion-toggle" style="cursor: pointer" >
-					<th class="text-center">Select</th>
-					<th class="text-center">Model</th>
-					<th class="text-center">Path</th>
-					<th class="text-center">Size</th>
-				</tr>
-			</thead>
-			<tbody>
-				<%= form_tag(defined?(disk_wizards_engine) ? disk_wizards_engine.file_system_path : file_system_path ,{method: "POST",id:"select_device"}) %>
-				<% for device in @new_disks%>
-				<tr class=<%= !!((user_selections['path'] == device.path) rescue false) ? "info" : "" %> class="accordion-toggle" style = "cursor: pointer;">
-					<td> <%= radio_button_tag(:device, device.path,!!((user_selections['path'] == device.path) rescue false)) %> </td>
-					<td><%= device.model || "N/A"%>
-					<% if device.removable? %>
-					&nbsp; <span data-toggle="tooltip" title="Removable/External Device" style="color: red" class="glyphicon glyphicon-floppy-disk"></span> <% elsif device.partition_table.blank? %>
-					&nbsp; <span data-toggle="tooltip" title="New Device(No Partition Table)" style="color: blue" class="glyphicon glyphicon-star"></span> <% end %> </td>
-					<td><%= "/dev/#{device.path}"%></td>
-					<td><%= number_to_human_size device.size %></td>
-				</tr>
-				<% end %>
-			</tbody>
+  <div class="row">
+    <table class="settings table-bordered table table-hover">
+      <thead>
+      <tr data-toggle="collapse" data-target="#demo1" class="accordion-toggle" style="cursor: pointer">
+        <th class="text-center">Select</th>
+        <th class="text-center">Model</th>
+        <th class="text-center">Path</th>
+        <th class="text-center">Size</th>
+      </tr>
+      </thead>
+      <tbody>
+      <%= form_tag(defined?(disk_wizards_engine) ? disk_wizards_engine.file_system_path : file_system_path, {method: "POST", id: "select_device"}) %>
+      <% for device in @new_disks %>
+          <tr class=<%= !!((user_selections['path'] == device.path) rescue false) ? "info" : "" %> class="accordion-toggle" style="cursor: pointer;">
+            <td> <%= radio_button_tag(:device, device.path, !!((user_selections['path'] == device.path) rescue false)) %> </td>
+            <td><%= device.model || "N/A" %>
+              <% if device.removable? %>
+                  &nbsp;
+                  <span data-toggle="tooltip" title="Removable/External Device" style="color: red" class="glyphicon glyphicon-floppy-disk"></span>
+              <% elsif device.partition_table.blank? %>
+                  &nbsp;
+                  <span data-toggle="tooltip" title="New Device(No Partition Table)" style="color: blue" class="glyphicon glyphicon-star"></span>
+              <% end %> </td>
+            <td><%= "/dev/#{device.path}" %></td>
+            <td><%= number_to_human_size device.size %></td>
+          </tr>
+      <% end %>
+      </tbody>
 
-		</table>
-	</div>
+    </table>
+  </div>
 
-	<div class="row text-right">
-		<a style="float: left" class="btn btn-default disabled" href="#">&larr; Back</a>
-		<%= link_to '#',class: "btn btn-success",  :onclick => "$('#select_device').submit()" do %>
-		Next &rarr;
-		<% end %>
-		</form>
-	</div>
-	<br />
-	
-	<div class="row">
-		<div class="panel panel-default">
-			<div class="panel-heading">
-				<h3 class="panel-title">Disks Currently in Use</h3>
-			</div>
-			<% if @mounted_disks.any? %>
-			<div class="panel-body">
-				<div class="row">
-					<% @mounted_disks.each do | disk | %>
-					<div class="col-md-6">
-						<h5><%= disk[:path] %> <span class="label label-default"> <%= number_to_human_size disk[:bytes_total] %></span></h5>
-						<%=
- pie_chart({"Used: #{number_to_human_size disk[:used]}" => (disk[:bytes_total] - disk[:bytes_free]),"Free: #{number_to_human_size disk[:available]}" => disk[:bytes_free]},\
-						library: {legend: {position: 'top'}, \
-						is3D: true, \
-						pieSliceText: 'percentage', \
-						tooltip: {text: 'percentage' }, \
-						width: 400, \
-						slices: [{color: '#A44585'},{color: '#00B5F0'}] \
+  <div class="row text-right">
+    <a style="float: left" class="btn btn-default disabled" href="#">&larr; Back</a>
+    <%= link_to '#', class: "btn btn-success", :onclick => "$('#select_device').submit()" do %>
+        Next &rarr;
+    <% end %>
+    </form>
+  </div>
+  <br/>
+
+  <div class="row">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Disks Currently in Use</h3>
+      </div>
+      <% if @mounted_disks.any? %>
+          <div class="panel-body">
+            <div class="row">
+              <% @mounted_disks.each do |disk| %>
+                  <div class="col-md-6">
+                    <h5><%= disk[:path] %>
+                      <span class="label label-default"> <%= number_to_human_size disk[:bytes_total] %></span></h5>
+                    <%=
+                        pie_chart({"Used: #{number_to_human_size disk[:used]}" => (disk[:bytes_total] - disk[:bytes_free]), "Free: #{number_to_human_size disk[:available]}" => disk[:bytes_free]}, \
+						 library: {legend: {position: 'top'}, \
+						 is3D: true, \
+						 pieSliceText: 'percentage', \
+						 tooltip: {text: 'percentage'}, \
+						 width: 400, \
+						 slices: [{color: '#A44585'}, {color: '#00B5F0'}] \
 						})
-%>
+                    %>
 
-					</div>
-					<% end %>
-				</div>
-				<% end %>
-			</div>
-		</div>
-	</div>
+                  </div>
+              <% end %>
+            </div>
+      <% end %>
+      </div>
+    </div>
+  </div>
 </div>
 <%= render 'shared/footer' %>

@@ -71,16 +71,16 @@ class DiskCommand
 
     root_folder = "/var/hda/apps/520ut3lo6w" #TODO: Replace with plugin.root_folder with bug 1368 fix
     check root_folder
-    script_location = File.join(root_folder,"elevated/")
+    script_location = File.join(root_folder, "elevated/")
     begin
       sudo_rules_definitions = "/etc/sudoers.d/disk_wizard"
       Command.new("echo 'Defaults    !requiretty' | tee #{sudo_rules_definitions}").run_now
       if blocking
-        Open3.popen3("sudo","./dsk-wz.sh",@command,@parameters,:chdir=>script_location) {|stdin, stdout, stderr, wait_thr|
-          @stdout = stdout ;@stderr = stderr ;@wait_thr = wait_thr
+        Open3.popen3("sudo", "./dsk-wz.sh", @command, @parameters, :chdir => script_location) { |stdin, stdout, stderr, wait_thr|
+          @stdout = stdout; @stderr = stderr; @wait_thr = wait_thr
         }
       else
-        _, @stdout, @stderr, @wait_thr = Open3.popen3("sudo","./dsk-wz.sh",@command,@parameters,:chdir=>script_location)
+        _, @stdout, @stderr, @wait_thr = Open3.popen3("sudo", "./dsk-wz.sh", @command, @parameters, :chdir => script_location)
       end
     rescue => error
       # Errno::ENOENT: No such file or directory `@command`
@@ -88,7 +88,7 @@ class DiskCommand
       raise error
     end
     @exit_status = @wait_thr.value.exitstatus
-    if not(@exit_status.equal? 0 or not @success)
+    if not (@exit_status.equal? 0 or not @success)
       @success = false
       raise @stderr.read
     end
@@ -108,10 +108,11 @@ class DiskCommand
   def result
     return @result
   end
+
   private
 
   def check root_folder
-    wrapper = File.join(root_folder,"/elevated/dsk-wz.sh")
+    wrapper = File.join(root_folder, "/elevated/dsk-wz.sh")
     raise "Wrapper script does not appear to be available!" unless File.file?(wrapper)
   end
 

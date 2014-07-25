@@ -122,9 +122,10 @@ class Device #< ActiveRecord::Base
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Creating partition #{self.kname}"
     Diskwz.create_partition self, 1, -1
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Find partition #{@kname}"
-    new_partition = Device.find @kname + "1"
+    self.reload
+    new_partition = self.partitions.last # New partition will be at the last index
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Formating #{@kname} to #{fstype}"
-    new_partition.format fstype
+    new_partition.format fstype and reload
   end
 
   #TODO: extend to create new partitions on unallocated spaces

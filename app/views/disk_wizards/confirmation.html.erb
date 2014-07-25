@@ -13,12 +13,12 @@
       <div class="col-md-4">
         <%=
             pie_chart({"Size: #{number_to_human_size @selected_disk.size}" => (@selected_disk.size)}, \
-				 library: {legend: {position: 'bottom'}, \
-				 is3D: true, \
-				 pieSliceText: 'percentage', \
-				 tooltip: {text: 'percentage'}, \
-				 chartArea: {width: '100%', height: '78%'}, \
-				 slices: [{color: '#A44585'}, {color: '#00B5F0'}] \
+				  library: {legend: {position: 'bottom'}, \
+				  is3D: true, \
+				  pieSliceText: 'percentage', \
+				  tooltip: {text: 'percentage'}, \
+				  chartArea: {width: '100%', height: '78%'}, \
+				  slices: [{color: '#A44585'}, {color: '#00B5F0'}] \
 				})
         %>
       </div>
@@ -41,7 +41,8 @@
           <% user_selections['option'].try(:each) do |option| %>
               <% if option == '1' %>
                   <li class="list-group-item text-left">
-                    <span class="badge alert-info"> /var/hda/files/drives/<%= user_selections['label'] || @selected_disk.kname %> </span> Mount
+                    <span class="badge alert-info"> /var/hda/files/drives/<%= user_selections['label'] || @selected_disk.kname %> </span>
+                    Mount
                     Location
                   </li>
               <% else %>

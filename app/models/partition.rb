@@ -86,15 +86,15 @@ class Partition
 
   def format_job params_hash
     Device.progress = 10
-    unmount if mountpoint
+    #unmount if mountpoint
     new_fstype = params_hash[:fs_type]
-    format new_fstype
+    format new_fstype and reload
     Device.progress = 40
     return true
   end
 
   def mount_job params_hash
-    unmount if mountpoint #Unmount from previous mount point
+    #unmount if mountpoint #Unmount from previous mount point
     Device.progress = 60
     mount params_hash[:label]
     Device.progress = 80
