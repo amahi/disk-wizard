@@ -72,7 +72,7 @@ class JobQueue
           [$1, $2, $4]
         }
         trace_tree = ""
-        backTrace.first(6).reverse.each { |exception| trace_tree += exception.to_sentence + "\n" }
+        backTrace.first(10).reverse.each { |exception| trace_tree += exception.to_sentence + "\n" }
         DebugLogger.info "|#{self.class.name}|>|#{__method__}|:JOB FAILS #{exception.inspect}\n---Backtrace---\n#{trace_tree}"
         if DiskCommand.debug_mode
           DebugLogger.info "Exception: #{exception.inspect}\n---Backtrace---\n#{trace_tree}"

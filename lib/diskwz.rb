@@ -273,12 +273,13 @@ class Diskwz
 
     def delete_partition partition
       raise "#{partition.path} is not a partition" if not partition.is_a? Partition
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:partition.partition_number = #{partition.partition_number} partition.device.path = #{partition.device.path}"
       command = 'parted'
-      params = "--script #{partition.disk.path} rm #{partition.partition_number}"
+      params = "--script #{partition.device.path} rm #{partition.partition_number}"
       parted = DiskCommand.new command, params
       parted.execute
       raise "Command execution error: #{parted.stderr.read}" if not parted.success?
-      probe_kernal partition.disk
+      probe_kernal partition.device.path
     end
 
     def probe_kernal device = nil
