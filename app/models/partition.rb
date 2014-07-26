@@ -103,8 +103,11 @@ class Partition
   # Number after that signifies the partition on the device(i.e. /dev/sda9 means the ninth partition on the first drive.)
   # Return partition number as an integer value
   def partition_number
-    partition_number_string = self.kname.match(/[0-9]*$/)
-    return partition_number_string[0].to_i
+    return Diskwz.get_partition_number self.path
+
+    # For reference:
+    # partition_number_string = self.kname.match(/[0-9]*$/)
+    # return partition_number_string[0].to_i
   end
 
   # Get parent device(Object) which the partition belongs to
