@@ -33,23 +33,16 @@ module Operation
   end
 
   def pre_checks_job params_hash
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Params_hash #{params_hash}"
     # TODO: Implement rollback mechanism, if something went wrong bring back the system to original state,where it was before stating DW
     # TODO/Suggestion: Acquire a lock through 'flock()',for the device/partition involved.
     selected_element = Device.find params_hash[:path]
     selected_element.unmount if (selected_element.instance_of? Partition and selected_element.mountpoint)
-    multipathd_status = Diskwz.check_service 'multipathd'
-    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Params_hash #{params_hash}"
-    if not multipathd_status[:pid].equal? 0
-      Diskwz.stop_service 'multipathd'
-    end
+    Diskwz.clear_multipath
   end
 
   def post_checks_job params_hash
     # TODO: Only revert the changes which was done by DW itself.
-    multipathd_status = Diskwz.check_service 'multipathd'
-    if multipathd_status[:pid].equal? 0
-      Diskwz.start_service 'multipathd'
-    end
   end
 
 

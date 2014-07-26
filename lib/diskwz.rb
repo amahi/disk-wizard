@@ -23,6 +23,8 @@ class Diskwz
       devices = []
       device = nil
       has_extended = false
+      clear_multipath
+      probe_kernal
       if DEBUG_MODE or Platform.ubuntu? or Platform.fedora?
         command = "lsblk"
         params = " #{search} -b -P -o VENDOR,MODEL,TYPE,SIZE,KNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM"
@@ -68,7 +70,7 @@ class Diskwz
           data_hash.except!('model', 'vendor')
           data_hash.merge! self.usage data_hash['kname']
 
-          partition_number = data_hash['kname'].match(/[0-9]*$/)[0].to_i
+          partition_number = get_partition_number "/dev/#{data_hash['kname']}" # For reference: data_hash['kname'].match(/[0-9]*$/)[0].to_i
           extended_partition_types = ['0x05'.hex, '0x0F'.hex]
           if partition_type_hex(data_hash['kname']).in? extended_partition_types
             has_extended = true
@@ -274,12 +276,18 @@ class Diskwz
     def delete_partition partition
       raise "#{partition.path} is not a partition" if not partition.is_a? Partition
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:partition.partition_number = #{partition.partition_number} partition.device.path = #{partition.device.path}"
+      if partition.logical
+        # TODO:  Need to implement this(https://github.com/GNOME/gparted/blob/master/src/OperationDelete.cc#L50-L57) logic in ruby
+        # Logical partition numbers change when deleting excising logical partition(s).Need to decrease partition numbers or reload partition table accordingly
+        raise "Deleting logical partitions (#{partition.path}) not supported yet!"
+      end
+      device_path = partition.device.path
       command = 'parted'
-      params = "--script #{partition.device.path} rm #{partition.partition_number}"
+      params = "--script #{device_path} rm #{partition.partition_number}"
       parted = DiskCommand.new command, params
       parted.execute
       raise "Command execution error: #{parted.stderr.read}" if not parted.success?
-      probe_kernal partition.device.path
+      probe_kernal device_path
     end
 
     def probe_kernal device = nil
@@ -307,11 +315,9 @@ class Diskwz
     end
 
     def get_path device
-      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:device = #{device.kname}, uuid = #{device.try :uuid}"
       if device.kind_of? Partition and device.try :uuid
         uuid = device.uuid
         params = "-U #{uuid} -c /dev/null"
-        DebugLogger.info "|#{self.class.name}|>|#{__method__}|:device = #{device.kname}, uuid = #{device.uuid}, params = #{params}"
       else
         kname = device.kname || device.mkname
         # TODO: find path,devices who don't have UUID
@@ -320,6 +326,7 @@ class Diskwz
       end
       command = "blkid"
       blkid = DiskCommand.new command, params
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:device = #{device.kname}, uuid = #{device.uuid}, params = #{params}"
       blkid.execute
       raise "Command execution error: #{blkid.stderr.read}" if not blkid.success?
       return blkid.result.lines.first.squish!
@@ -360,9 +367,32 @@ class Diskwz
           return data_hash['kname'] if value == parent_maj_min
         end
       end
-
+      raise "Unable to find parent device for #{child_path}"
     end
 
+    #Flush all unused multipath device maps
+    def clear_multipath
+      command = 'multipath'
+      params = ' -F'
+      multipath = DiskCommand.new command, params
+      multipath.execute
+      raise "Command execution error: #{multipath.stderr.read}" if not multipath.success?
+    end
+
+    def get_partition_number partition_path
+      # Get partition number from Udevadmn, instead of getting the last numeric value from kname from regex pattern
+      command = "udevadm"
+      params = " info  --query=property --name=#{partition_path}"
+      udevadm = DiskCommand.new command, params
+      udevadm.execute false, false # None blocking and not debug mode
+      raise "Command execution error: #{udevadm.stderr.read}" if not udevadm.success?
+      udevadm.result.each_line do |line|
+        line.squish!
+        key = 'ID_PART_ENTRY_NUMBER'
+        _key, value = line.split '='
+        return value.to_i if _key.eql? key
+      end
+    end
     private
 
     def get_kname device
