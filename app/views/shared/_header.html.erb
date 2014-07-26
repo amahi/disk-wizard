@@ -13,6 +13,12 @@
 
   <%= favicon_link_tag "fav/favicon.ico" %>
   <%= csrf_meta_tag %>
+  <script>
+      $(function () {
+          //TODO: Tempory fix for bootstrap theme styles conflict
+          $('#preferences').removeClass()
+      });
+  </script>
   <style>
       hr {
           -moz-border-bottom-colors: none;
