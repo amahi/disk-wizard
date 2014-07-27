@@ -8,7 +8,8 @@ DiskWizards::Engine.routes.draw do
 # root :to =>  "welcome#index"
 # scope 'tab/' do
 root :to => 'disk_wizards#select_device'
-
+  get "get_all_devices" => 'disk_service#get_all_devices'
+  get "check_label" => 'disk_service#check_label'
   match 'select' => 'disk_wizards#select_device',via: [:get,:post]
   match 'file_system' => 'disk_wizards#select_fs',via: [:get,:post]
   match 'manage' => 'disk_wizards#manage_disk',via: [:get,:post]
