@@ -1,59 +1,77 @@
 <script>
-    $(function () {
-        var rows = $('tr:not(:first)');
-        rows.on('click', function (e) {
-            var row = $(this);
-            $(this).find('td input:radio').prop('checked', true);
-            rows.removeClass('info');
-            row.addClass('info');
-        });
-        $(document).bind('selectstart dragstart', function (e) {
-            e.preventDefault();
-            return false;
-        });
-
+    $("document").ready(function () {
+        getDevices();
     });
+
+    function getDevices(){
+        $.ajax({
+            url: "/tab/disks/disk_wizards/get_all_devices",
+            async: true,
+            dataType: 'script',
+            type: "GET",
+            cache: false,
+            success: function (data) {
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                alert(textStatus);
+            }
+
+        });
+    }
+
+        function refresh(){
+            $("#devices_data ,#next_button ,#refresh_devices_button").fadeOut();
+            $("#loading_animation").fadeIn();
+            $("#table_contents").empty();
+            getDevices();
+        }
 </script>
 <%= render 'shared/header' %>
 
 <div class="panel-body">
   <% "*****************#{@new_disks}" %>
 
-  <div class="row">
-    <table class="settings table-bordered table table-hover">
-      <thead>
-      <tr data-toggle="collapse" data-target="#demo1" class="accordion-toggle" style="cursor: pointer">
-        <th class="text-center">Select</th>
-        <th class="text-center">Model</th>
-        <th class="text-center">Path</th>
-        <th class="text-center">Size</th>
-      </tr>
-      </thead>
-      <tbody>
-      <%= form_tag(defined?(disk_wizards_engine) ? disk_wizards_engine.file_system_path : file_system_path, {method: "POST", id: "select_device"}) %>
-      <% for device in @new_disks %>
-          <tr class=<%= !!((user_selections['path'] == device.path) rescue false) ? "info" : "" %> class="accordion-toggle" style="cursor: pointer;">
-            <td> <%= radio_button_tag(:device, device.path, !!((user_selections['path'] == device.path) rescue false)) %> </td>
-            <td><%= device.model || "N/A" %>
-              <% if device.removable? %>
-                  &nbsp;
-                  <span data-toggle="tooltip" title="Removable/External Device" style="color: #ff3e17" class="glyphicon glyphicon-floppy-disk"></span>
-              <% elsif device.partition_table.blank? %>
-                  &nbsp;
-                  <span data-toggle="tooltip" title="New Device(No Partition Table)" style="color: #1babff" class="glyphicon glyphicon-star"></span>
-              <% end %> </td>
-            <td><%= device.path %></td>
-            <td><%= number_to_human_size device.size %></td>
-          </tr>
-      <% end %>
-      </tbody>
+  <div class="row" id="loading_animation">
+    <div class="col-md-5 col-md-offset-3 well">
+      <div class="progress progress-striped active">
+        <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+          <span class="sr-only">100%</span>
+        </div>
+      </div>
 
-    </table>
+      <p class="text-primary">
+        <span id="progress_message">Scanning devices....</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="row" id="devices_data" style="display: none;">
+    <%= form_tag(disk_wizards_engine.file_system_path, {method: "POST", id: "select_device"}) do %>
+        <table class="settings table-bordered table table-hover">
+          <thead>
+          <tr data-toggle="collapse" data-target="#demo1" class="accordion-toggle" style="cursor: pointer">
+            <th class="text-center">Select</th>
+            <th class="text-center">Model</th>
+            <th class="text-center">Path</th>
+            <th class="text-center">Size</th>
+          </tr>
+          </thead>
+
+          <tbody id="table_contents">
+
+
+          </tbody>
+
+        </table>
+    <% end %>
   </div>
 
   <div class="row text-right">
-    <a style="float: left" class="btn btn-default disabled" href="#">&larr; Back</a>
-    <%= link_to '#', class: "btn btn-success", :onclick => "$('#select_device').submit()" do %>
+    <button id = "refresh_devices_button" onclick="refresh()" type="button" style="float: left;display: none;" class="btn btn-default btn-sm">
+      <span class="glyphicon glyphicon-refresh"></span> Refresh Devices
+    </button>
+
+    <%= link_to '#', class: "btn btn-success", id: 'next_button',style: 'display: none;',:onclick => "$('#select_device').submit()" do %>
         Next &rarr;
     <% end %>
     </form>
@@ -74,12 +92,12 @@
                       <span class="label label-default"> <%= number_to_human_size disk[:bytes_total] %></span></h5>
                     <%=
                         pie_chart({"Used: #{number_to_human_size disk[:used]}" => (disk[:bytes_total] - disk[:bytes_free]), "Free: #{number_to_human_size disk[:available]}" => disk[:bytes_free]}, \
-						 library: {legend: {position: 'top'}, \
-						 is3D: true, \
-						 pieSliceText: 'percentage', \
-						 tooltip: {text: 'percentage'}, \
-						 width: 400, \
-						 slices: [{color: '#A44585'}, {color: '#00B5F0'}] \
+						  library: {legend: {position: 'top'}, \
+						  is3D: true, \
+						  pieSliceText: 'percentage', \
+						  tooltip: {text: 'percentage'}, \
+						  width: 400, \
+						  slices: [{color: '#A44585'}, {color: '#00B5F0'}] \
 						})
                     %>
 
