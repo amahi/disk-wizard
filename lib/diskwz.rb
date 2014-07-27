@@ -23,8 +23,6 @@ class Diskwz
       devices = []
       device = nil
       has_extended = false
-      clear_multipath
-      probe_kernal
       if DEBUG_MODE or Platform.ubuntu? or Platform.fedora?
         command = "lsblk"
         params = " #{search} -b -P -o VENDOR,MODEL,TYPE,SIZE,KNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM"
@@ -253,10 +251,9 @@ class Diskwz
     end
 
     #TODO: Need more testing
-    #TODO: align partitions on 1MiB (2048-sector) boundaries
-    def create_partition device, start_block, end_block
+    def create_partition device, partition_type = 'primary',start_unit, end_unit
       command = 'parted'
-      params = "-s -a optimal #{device.path} mkpart primary ext3 #{start_block} -- #{end_block}"
+      params = "#{device.path} -s -a optimal unit MB mkpart #{partition_type} ext3 #{start_unit} -- #{end_unit}"
       parted = DiskCommand.new command, params
       parted.execute
       raise "Command execution error: #{parted.stderr.read}" if not parted.success?
@@ -290,9 +287,12 @@ class Diskwz
       probe_kernal device_path
     end
 
-    def probe_kernal device = nil
+    def probe_kernal device_path = nil
+      if device_path.instance_of? Partition or device_path.instance_of? Device #TODO: pass only string path value no Partition or Device object
+        device_path = device_path.path
+      end
       commands = {'partprobe' => '', 'udevadm' => ' trigger'}
-      commands['hdparm'] = ' trigger -z #{device}' if not device.nil? # Do not execute 'hdparm' when device/partition is not given.
+      commands['hdparm'] = "trigger -z #{device_path}"  if not device_path.nil? # Do not execute 'hdparm' when device/partition is not given.
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Commands = #{commands}"
       commands.each do |command, args|
         executor = DiskCommand.new(command, args)
@@ -372,6 +372,7 @@ class Diskwz
 
     #Flush all unused multipath device maps
     def clear_multipath
+      #TODO: Check multipathd status
       command = 'multipath'
       params = ' -F'
       multipath = DiskCommand.new command, params
