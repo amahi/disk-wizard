@@ -123,7 +123,7 @@ class Device #< ActiveRecord::Base
     Diskwz.create_partition self, 1, -1
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Find partition #{@kname}"
     self.reload
-    new_partition = self.partitions.last # New partition will be at the last index
+    new_partition = self.partitions.last # Assuming new partition to be at the last index
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Formating #{@kname} to #{fstype}"
     new_partition.format fstype and reload
   end
@@ -156,7 +156,7 @@ class Device #< ActiveRecord::Base
     Device.progress = 60
     kname = @kname
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:New partition Label #{params_hash[:label]}"
-    new_partition = Device.find kname + "1"
+    new_partition = self.partitions.last
     new_partition.mount params_hash[:label]
     Device.progress = 80
   end

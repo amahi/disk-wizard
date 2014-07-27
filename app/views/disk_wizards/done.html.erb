@@ -115,9 +115,9 @@
           </thead>
           <tbody>
           <tr>
-            <td><%= @user_selections["kname"] %></td>
-            <td><%= Partition.FilesystemType.key(@user_selections["fs_type"].to_i) %></td>
-            <% if @user_selections["option"] %>
+            <td><%= @user_selections['path'] %></td>
+            <td><%= Partition.FilesystemType.key(@user_selections['fs_type'].to_i) %></td>
+            <% if @user_selections['option'] %>
                 <td>/var/hda/disks/<%= @user_selections['label'] %></td>
             <% end %>
           </tr>

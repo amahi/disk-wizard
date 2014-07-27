@@ -10,7 +10,6 @@ class DiskWizardsController < ApplicationController
   def select_device
     DebugLogger.info "--disk_wizard_start--"
     @mounted_disks = Device.mounts
-    @new_disks = Device.new_disks
   end
 
   def select_fs

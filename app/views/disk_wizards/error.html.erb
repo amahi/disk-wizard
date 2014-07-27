@@ -42,7 +42,7 @@
         -moz-border-right-colors: none;
         -moz-border-top-colors: none;
         border-color: #dfdfdf;
-        -moz-use-text-color #dfdfdf;
+        -moz-use-text-color: #dfdfdf;
         border-style: solid none;
         border-width: 1px 0;
         margin: 0;
@@ -72,6 +72,9 @@
   <div class="row text-center">
     <button onclick="getDebugURL();" id="get_debug_info" class="btn btn-warning">
       Get Debug infomation
+    </button>
+    <button onclick="sendReport();" id="send_crash_report" class="btn btn-default">
+      <span class="glyphicon glyphicon-send"></span> Send Report to Amahi
     </button>
     <a href="/tab/disks/disk_wizards" type="button" class="btn btn-default">
       Or try again
