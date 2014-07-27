@@ -1,0 +1,18 @@
+$("#loading_animation").fadeOut(500);
+$("#table_contents").append('<%= j render('devices') %>');
+window.setTimeout(function(){$("#devices_data").fadeIn()},510);
+window.setTimeout(function(){$("#next_button, #refresh_devices_button").fadeIn()},610);
+$(function () {
+    var rows = $('tr:not(:first)');
+    rows.on('click', function (e) {
+        var row = $(this);
+        $(this).find('td input:radio').prop('checked', true);
+        rows.removeClass('info');
+        row.addClass('info');
+    });
+    $(document).bind('selectstart dragstart', function (e) {
+        e.preventDefault();
+        return false;
+    });
+
+});
