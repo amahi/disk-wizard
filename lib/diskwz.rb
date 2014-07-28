@@ -372,12 +372,15 @@ class Diskwz
 
     #Flush all unused multipath device maps
     def clear_multipath
-      #TODO: Check multipathd status
       command = 'multipath'
       params = ' -F'
       multipath = DiskCommand.new command, params
-      multipath.execute
-      raise "Command execution error: #{multipath.stderr.read}" if not multipath.success?
+      if which command
+        multipath.execute
+        raise "Command execution error: #{multipath.stderr.read}" if not multipath.success?
+      else
+        return false
+      end
     end
 
     def get_partition_number partition_path
@@ -385,7 +388,7 @@ class Diskwz
       command = "udevadm"
       params = " info  --query=property --name=#{partition_path}"
       udevadm = DiskCommand.new command, params
-      udevadm.execute false, false # None blocking and not debug mode
+      udevadm.execute
       raise "Command execution error: #{udevadm.stderr.read}" if not udevadm.success?
       udevadm.result.each_line do |line|
         line.squish!
@@ -393,7 +396,23 @@ class Diskwz
         _key, value = line.split '='
         return value.to_i if _key.eql? key
       end
+      raise "Can't find partition number for #{partition_path} partition"
     end
+
+    #Quick `open3` wrapper for check availability of a system command, shows the full path of (shell) commands.Wrapper for linux 'which' command
+    def which command
+      require 'open3'
+      Open3.popen3("which #{command}") do |stdin, stdout, stderr, wait_thr|
+        if wait_thr.value.to_i == 0
+          availability = true
+        else
+          availability = false
+        end
+        return availability
+      end
+    end
+
+
     private
 
     def get_kname device
