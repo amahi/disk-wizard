@@ -3,7 +3,6 @@
         $('#debug').tooltip();
     });
 </script>
-<%= render 'shared/header' %>
 <div class="panel-body">
   <%= form_tag(defined?(disk_wizards_engine) ? disk_wizards_engine.process_path : process_path, {method: "POST", id: "confirmation"}) %>
   <%= hidden_field_tag 'device', user_selections['path'] %>
@@ -70,4 +69,4 @@
     </div>
   </div>
 </div>
-<%= render 'shared/footer' %>
+

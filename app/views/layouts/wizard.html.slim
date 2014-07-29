@@ -1,0 +1,91 @@
+doctype 5
+html[dir="#{@locale_direction}" lang="#{I18n.locale}" xml:lang="#{I18n.locale}"]
+  head
+    meta charset="utf-8"
+    title = full_page_title
+
+    = stylesheet_link_tag 'application'
+
+    - if theme.name != "default" and theme.disable_inheritance == false
+      = stylesheet_link_tag(theme_stylesheet_path('style', theme.default))
+      = stylesheet_link_tag(theme_stylesheet_path('rtl', theme.default)) if rtl?
+    = stylesheet_link_tag "basic"
+    = stylesheet_link_tag "bootstrap"
+    = stylesheet_link_tag "bootstrap-theme"
+
+    = theme_stylesheet_link_tag 'style'
+    = theme_stylesheet_link_tag('rtl') if rtl?
+
+    /[ if lt IE 9 ]
+      = javascript_include_tag 'http://html5shim.googlecode.com/svn/trunk/html5.js'
+
+    = javascript_tag {render 'shared/js_vars'}
+    = javascript_include_tag 'application'
+    = javascript_tag {'$.fx.off = true;' if Rails.env.test?}
+    - for header in theme.headers do
+      = header =~ /\.js$/ ? javascript_include_tag(header) : header
+
+    link rel="search" type="application/opensearchdescription+xml" title="HDA Search" href="/search.xml"
+    link rel="shortcut icon" href="/favicon.ico" type="image/x-icon"
+
+    = javascript_include_tag "jsapi", "chartkick"
+    = javascript_include_tag "bootstrap"
+    = javascript_include_tag "bootstrap-contextmenu"
+    = javascript_include_tag "disks"
+
+    = csrf_meta_tags
+
+  body.basic
+
+    = render 'layouts/header'
+
+    #content
+      = render 'shared/flash_messages'
+      #app.inner
+        .row.text-center
+          .col-md-12
+            .panel.panel-default
+              ul.nav.nav-pills.nav-justified.alert-warning
+                li class=(params[:action] == "select_device" ? "active" : "disabled")
+                  a href="#"
+                    |Select new drive
+                    span.glyphicon.glyphicon-chevron-right
+                li class=(params[:action] == "select_fs" ? "active" : "disabled")
+                  a href="#"
+                    |Choose file system
+                    span.glyphicon.glyphicon-chevron-right
+                li class=(params[:action] == "manage_disk" ? "active" : "disabled")
+                  a href="#"
+                    | Options
+                    span.glyphicon.glyphicon-chevron-right
+                li class=(params[:action] == "confirmation" ? "active" : "disabled")
+                  a href="#"
+                    | Confirmation
+                    span.glyphicon.glyphicon-chevron-right
+                li class=(params[:action] == "done" ? "active" : "disabled")
+                  a href="#"
+                    | Done
+                    span.glyphicon.glyphicon-ok
+              hr/
+              - if flash[:error]
+                .aleart_box style=("position: absolute;z-index: 9999;left: 12.5%;width: 75%")
+                  .alert.alert-danger.alert-dismissable
+                    button.close aria-hidden="true" data-dismiss="alert" type="button"
+                      | \&times;
+                    strong Warning!
+                    = flash[:error]
+                - flash[:error] = nil
+              - if flash[:success]
+                .aleart_box style=("position: absolute;z-index: 9999;left: 12.5%;width: 75%")
+                  .alert.alert-success.alert-dismissable
+                    button.close aria-hidden="true" data-dismiss="alert" type="button"
+                      | \&times;
+                    = flash[:success]
+                - flash[:success] = nil
+
+              = yield
+      .push
+    = render 'layouts/footer'
+
+    #js-templates[style="display:none"]
+      = yield :js_templates
