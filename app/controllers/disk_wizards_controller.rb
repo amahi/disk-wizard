@@ -1,6 +1,8 @@
 class DiskWizardsController < ApplicationController
   before_filter :disk_wizard
 
+  layout 'wizard'
+
   def disk_wizard
     defined?(disk_wizards_engine) ? admin_required : false
   end

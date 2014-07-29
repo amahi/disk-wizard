@@ -27,4 +27,8 @@ $(document).ready(function () {
         $("#partition").attr("value", path);
 
     });
+    $(function () {
+        //TODO: Tempory fix for bootstrap theme styles conflict
+        $('#preferences').removeClass()
+    });
 });
