@@ -23,15 +23,14 @@
         </li>
         <li class="list-group-item">
           <div class="checkbox">
-            <label> <%= check_box_tag('option[]', 1, !!((user_selections['option'].include? '1') rescue false), class: 'mount_check') %>
+            <%= check_box_tag('option[]', 1, !!((user_selections['option'].include? '1') rescue false), class: 'mount_check') %>
               <div class="alert alert-info">
-                Mount this drive automatically.
+                <label for="option_"> Mount this drive automatically.</label>
                 <div style="<%= !!((user_selections['option'].include? '1') rescue false) ? nil : 'display: none' %>" id="label_input" class="input-group input-group-sm">
                   <span class="input-group-addon">Enter a label</span>
                   <input style="margin: auto;" type="text" name="label" id="label" class="form-control" placeholder="Label" value="<%= user_selections['label'] || nil %>">
                 </div>
               </div>
-            </label>
           </div>
         </li>
 
@@ -39,7 +38,7 @@
     </div>
   </div>
   <div class="row text-left">
-    <%= link_to(defined?(disk_wizards_engine) ? disk_wizards_engine.file_system_path : file_system_path, class: "btn btn-default") do %>
+    <%= link_to(disk_wizards_engine.file_system_path , class: "btn btn-default") do %>
         &larr; Back
     <% end %>
     <%= link_to '#', :onclick => "$('#options').submit()", style: "float: right;", class: "btn btn-success" do %>

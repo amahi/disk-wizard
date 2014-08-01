@@ -62,7 +62,7 @@ class Device #< ActiveRecord::Base
         unmounted_devices.push device
         next
       end
-      device.partitions.delete_if { |partition| (fstab.has_device? partition.path) }
+      device.partitions.delete_if { |partition| (fstab.has_device? partition.path or partition.mountpoint) }
       unmounted_devices.push device if not device.partitions.blank?
     end
     return unmounted_devices

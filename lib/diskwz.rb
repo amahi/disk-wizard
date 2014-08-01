@@ -292,7 +292,7 @@ class Diskwz
         device_path = device_path.path
       end
       commands = {'partprobe' => '', 'udevadm' => ' trigger'}
-      commands['hdparm'] = "trigger -z #{device_path}"  if not device_path.nil? # Do not execute 'hdparm' when device/partition is not given.
+      commands['hdparm'] = " -z #{device_path}"  if not device_path.nil? # Do not execute 'hdparm' when device/partition is not given.
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Commands = #{commands}"
       commands.each do |command, args|
         executor = DiskCommand.new(command, args)
@@ -328,7 +328,7 @@ class Diskwz
       blkid = DiskCommand.new command, params
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:device = #{device.kname}, uuid = #{device.uuid}, params = #{params}"
       blkid.execute
-      raise "Command execution error: #{blkid.stderr.read}" if not blkid.success?
+      raise "Command execution error:blkid error: #{blkid.stderr.read}" if not blkid.success?
       return blkid.result.lines.first.squish!
     end
 

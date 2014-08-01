@@ -55,8 +55,13 @@ module Operation
   # Reload the device/partition attribute from system.
   def reload
     dev_path = "/dev/#{self.kname}"
+    if self.instance_of? Device
+      Diskwz.probe_kernal dev_path
+    else
+      #TODO: Reloading a partitions, hdparm need its parent device path in -z option.no the path of the partition itself (man hdparm)
+      Diskwz.probe_kernal
+    end
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Device Kname #{self.kname}"
-    Diskwz.probe_kernal dev_path
     node = Diskwz.find dev_path
     if node['type'].eql? 'part'
       node.each do |key, value|
