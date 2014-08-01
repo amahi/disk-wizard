@@ -67,22 +67,6 @@ html[dir="#{@locale_direction}" lang="#{I18n.locale}" xml:lang="#{I18n.locale}"]
                     | Done
                     span.glyphicon.glyphicon-ok
               hr/
-              - if flash[:error]
-                .aleart_box style=("position: absolute;z-index: 9999;left: 12.5%;width: 75%")
-                  .alert.alert-danger.alert-dismissable
-                    button.close aria-hidden="true" data-dismiss="alert" type="button"
-                      | \&times;
-                    strong Warning!
-                    = flash[:error]
-                - flash[:error] = nil
-              - if flash[:success]
-                .aleart_box style=("position: absolute;z-index: 9999;left: 12.5%;width: 75%")
-                  .alert.alert-success.alert-dismissable
-                    button.close aria-hidden="true" data-dismiss="alert" type="button"
-                      | \&times;
-                    = flash[:success]
-                - flash[:success] = nil
-
               = yield
       .push
     = render 'layouts/footer'
