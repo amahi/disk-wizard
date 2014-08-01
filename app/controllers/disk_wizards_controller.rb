@@ -90,7 +90,7 @@ class DiskWizardsController < ApplicationController
 
   def done
     @operations = DiskCommand.operations_log
-    flash[:success] = 'All disks operations has been completed successfully!'
+    flash[:success] = 'All disks operations have been completed successfully!'
     @user_selections = self.user_selections
   end
 
