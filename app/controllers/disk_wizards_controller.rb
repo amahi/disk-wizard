@@ -51,7 +51,7 @@ class DiskWizardsController < ApplicationController
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Selected disk/partition = #{path}"
     disk = Device.find path
 
-    DiskCommand.debug_mode = !!(self.user_selections['debug'])
+    CommandsExecutor.debug_mode = !!(self.user_selections['debug'])
 
     jobs_queue = JobQueue.new(user_selections.length)
     jobs_queue.enqueue({job_name: :pre_checks_job, job_para: {path: path}})
@@ -89,7 +89,7 @@ class DiskWizardsController < ApplicationController
   end
 
   def done
-    @operations = DiskCommand.operations_log
+    @operations = CommandsExecutor.operations_log
     flash[:success] = 'All disks operations have been completed successfully!'
     @user_selections = self.user_selections
   end
@@ -123,7 +123,7 @@ class DiskWizardsController < ApplicationController
   end
 
   def clear_mode
-    DiskCommand.debug_mode = nil
+    CommandsExecutor.debug_mode = nil
   end
 
   def debug_info

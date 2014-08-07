@@ -74,10 +74,10 @@ class JobQueue
         trace_tree = ""
         backTrace.first(10).each { |exception| trace_tree += exception.to_sentence + "\n" }
         DebugLogger.info "|#{self.class.name}|>|#{__method__}|:JOB FAILS #{exception.inspect}\n---Backtrace---\n#{trace_tree}"
-        if DiskCommand.debug_mode
+        if CommandsExecutor.debug_mode
           DebugLogger.info "Exception: #{exception.inspect}\n---Backtrace---\n#{trace_tree}"
-          DiskCommand.operations_log.push({}) unless DiskCommand.operations_log.last
-          DiskCommand.operations_log.last[:exception] = exception.inspect
+          CommandsExecutor.operations_log.push({}) unless CommandsExecutor.operations_log.last
+          CommandsExecutor.operations_log.last[:exception] = exception.inspect
           next
         else
           return exception

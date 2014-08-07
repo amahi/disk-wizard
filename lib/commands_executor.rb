@@ -16,9 +16,9 @@
 
 require "open3"
 
-# DiskCommand class which act as a bridge between system level dsk-wzd.sh bash script and rails
-# Named as 'DiskCommand' to prevent class name conflicts('Command' library), when intergrating disk-wizard as Amahi plugin app
-class DiskCommand
+# CommandsExecutor class which act as a bridge between system level dsk-wzd.sh bash script and rails
+# Named as 'CommandsExecutor' to prevent class name conflicts('Command' library), when intergrating disk-wizard as Amahi plugin app
+class CommandsExecutor
   attr_reader :stdin, :stdout, :stderr, :success
   cattr_accessor :operations_log
   # `debug_mode` class variable which hold the current executing mode of the commands,if true, commands will not be executed on the system level instead command(operation) will be loged(in @@operations_log) for future use
@@ -43,7 +43,7 @@ class DiskCommand
     return @@operations_log
   end
 
-  # Initialize DiskCommand object
+  # Initialize CommandsExecutor object
   # == Parameters:
   #     command
   #     parameters Default set to `nil` to allow execution of commands, with no arguments i.e. pwd

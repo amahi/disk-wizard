@@ -52,18 +52,18 @@ class Fstab
       raise ArgumentError.new("Missing :mount_point, :type, :opts, :dump or :pass options")
     end
 
-    if @safe_mode and not DiskCommand.debug_mode
+    if @safe_mode and not CommandsExecutor.debug_mode
       if label
         raise ArgumentError.new("Invalid device label #{label}") unless \
-                 File.blockdev?("/dev/disk/by-label/#{opts[:label]}")
+                  File.blockdev?("/dev/disk/by-label/#{opts[:label]}")
         opts[:uuid] = Fstab.get_uuid_from_label(label)
       elsif uuid
         raise ArgumentError.new("Invalid device UUID #{uuid}") unless \
-                 File.blockdev?("/dev/disk/by-uuid/#{uuid}")
+                  File.blockdev?("/dev/disk/by-uuid/#{uuid}")
         opts[:uuid] = uuid
       elsif pdev
         raise ArgumentError.new("Invalid device path #{pdev}") unless \
-                 File.blockdev?("#{pdev}")
+                  File.blockdev?("#{pdev}")
         opts[:uuid] = Fstab.get_uuid(pdev)
       else
         # Asume special device
@@ -78,12 +78,12 @@ class Fstab
     #TODO: Append format_entry(dev, opts) to "/etc/fstab" by using "Command" library not using File.open
     command = "echo"
     params = "  #{@contents} ! sudo tee /etc/fstab"
-    echo = DiskCommand.new command, params
+    echo = CommandsExecutor.new command, params
     echo.execute
     raise "Command execution error: #{echo.stderr.read}" if not echo.success?
     command = "echo"
     params = " #{format_entry(dev, opts)} ! sudo tee -a /etc/fstab"
-    echo = DiskCommand.new command, params
+    echo = CommandsExecutor.new command, params
     echo.execute
     raise "Command execution error: #{echo.stderr.read}" if not echo.success?
     reload
@@ -236,7 +236,7 @@ class Fstab
   # All the attributes except dev may be nil at any given time since
   # device may not have a valid filesystem or label.
   def self.get_blkdev_fs_attrs(dev)
-    raise ArgumentError.new("Invalid device path #{dev}") unless File.blockdev?(dev) and not DiskCommand.debug_mode
+    raise ArgumentError.new("Invalid device path #{dev}") unless File.blockdev?(dev) and not CommandsExecutor.debug_mode
     # For reference, TODO: remove later
     # blkid = `/sbin/blkid #{dev}`
     # attrs = {}
@@ -248,7 +248,7 @@ class Fstab
     attrs = {}
     command = 'blkid'
     params = " #{dev} -o export -c /dev/null"
-    blkid = DiskCommand.new command, params
+    blkid = CommandsExecutor.new command, params
     DebugLogger.info "|Fstab|>|#{__method__}|:device = #{dev}"
     blkid.execute
     raise "Command execution error:blkid error: #{blkid.stderr.read}" if not blkid.success?
@@ -320,7 +320,7 @@ class Fstab
     command = "echo"
     params = " #{@contents} ! sudo tee  #{@backup_dir}/fstab.#{Time.now.to_f}.bak"
 
-    echo = DiskCommand.new command, params
+    echo = CommandsExecutor.new command, params
     echo.execute
     raise "Command execution error: #{echo.stderr.read}" if not echo.success?
     # File.open("#{@backup_dir}/fstab.#{Time.now.to_f}.bak", 'w') do |f|

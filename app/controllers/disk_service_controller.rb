@@ -3,8 +3,8 @@ class DiskServiceController < ApplicationController
   def get_all_devices
     # probe_kernal
     #mounted_disks = Device.mounts
-    Diskwz.probe_kernal
-    Diskwz.clear_multipath
+    DiskUtils.probe_kernal
+    DiskUtils.clear_multipath
     Kernel.sleep 0.8
     @new_disks = Device.new_disks
   end

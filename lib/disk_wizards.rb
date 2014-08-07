@@ -1,8 +1,8 @@
 require "disk_wizards/version"
 require "disk_wizards/engine"
 require "chartkick.rb"
-require "disk_command.rb"
-require "diskwz.rb"
+require "commands_executor.rb"
+require "disk_utils.rb"
 require "debug_logger.rb"
 require "fstab.rb"
 require 'modules/operation.rb'
