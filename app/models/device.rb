@@ -98,7 +98,6 @@ class Device #< ActiveRecord::Base
   end
 
   # class methods for retrive information about the disks attached to the HDA
-
   def Device.progress=(percentage)
     #TODO: if user runs disk_wizard in two browsers concurrently,identifier should set to unique kname of the disk
     current_progress = Setting.find_or_create_by('disk_wizard', 'operation_progress', percentage)

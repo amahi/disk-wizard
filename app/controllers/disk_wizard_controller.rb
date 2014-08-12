@@ -1,35 +1,47 @@
-class DiskWizardsController < ApplicationController
-  before_filter :disk_wizard
+class DiskWizardController < ApplicationController
+  before_filter :admin_required
+  # TODO: Clear mode(debug mode flag) only once at the beginning, not in every action
+  before_filter :clear_mode, except: [:process_disk]
 
   layout 'wizard'
 
-  def disk_wizard
-    defined?(disk_wizards_engine) ? admin_required : false
-  end
-
-  before_filter :clear_mode, except: [:process_disk]
-
+  # @return [Device Array] : Return array of Device objects, which are mounted(permanent or temporary) in the HDA.
+  # Render the first step of the Disk-Wizard(DW)
   def select_device
     DebugLogger.info "--disk_wizard_start--"
     @mounted_disks = Device.mounts
   end
 
+  # Expected key:values in @params:
+  #   :device => Device path(Device.path) of the selected device from step 1
+  # if no device is selected and the request type is HTTP POST, redirect to same step with flash error message
+  # (HTTP GET method is used in 'back' event, when select to go back in a step)
+  # else find the selected device and render second step of the Disk-Wizard(DW)
   def select_fs
     device = params[:device]
-    self.user_selections = {path: device} if device
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Device = #{device}"
     if not (device and request.post?)
-      redirect_to defined?(disk_wizards_engine) ? disk_wizards_engine.select_path : select_path, :flash => {:error => "Please select a device to continue."}
+      redirect_to disk_wizards_engine.select_path, :flash => {:error => "Please select a device to continue."}
       return false
     end
-    @selected_disk = Device.find(device || user_selections['path'])
+    if request.post?
+      self.user_selections = {path: device}
+      @selected_disk = Device.find(device)
+    else
+      @selected_disk = Device.find(user_selections['path'])
+    end
   end
 
+  # Expected key:values in @params:
+  #   :fs_type => An integer value which mapped to a supported filesystem type in Partition.PartitionType HashMap.
+  #   :partition => System path of the selected partition(Device node)
+  #   :format => A boolean value, if true selected partition will be formatted in to given filesystem type(fs_type)
+  # Render third step of the wizard(options).
   def manage_disk
     format = params[:format]
     partition = params[:partition]
     fs_type = params[:fs_type].to_i
-    if (not (fs_type or user_selections['fs_type']) and not user_selections['path'])
+    if (partition and not fs_type)
       redirect_to defined?(disk_wizards_engine) ? disk_wizards_engine.file_system_path : file_system_path, :flash => {:error => "Please select a filesystem type to continue."}
       return false
     end
@@ -37,7 +49,11 @@ class DiskWizardsController < ApplicationController
       self.user_selections = {fs_type: fs_type, format: format, path: partition}
     end
   end
-
+  # Expected key:values in @params:
+  #   :options => An integer value which maps to the type of option, selected in step 3
+  #   i.e if mount options is selected , :options value will be 1
+  #     TODO: Improve structure of storing 'options' information, instead of simple number mapping
+  #     TODO: i.e {mount: {label: 'label_name', mount_point: 'mount_point_name'} ,option2: {data_hash}}
   def confirmation
     option = params[:option]
     label = params[:label].blank? ? nil : params[:label]
@@ -45,6 +61,8 @@ class DiskWizardsController < ApplicationController
     @selected_disk = Device.find(user_selections['path'])
   end
 
+  # Create operation queue according to user selections(user_selections), and enqueue operations
+  # Execute
   def process_disk
     path = user_selections['path']
     label = user_selections['label']
@@ -75,11 +93,11 @@ class DiskWizardsController < ApplicationController
     result = jobs_queue.process_queue disk
     if result == true
       Device.progress = 100
-      redirect_to(defined?(disk_wizards_engine) ? disk_wizards_engine.complete_path : complete_path)
+      redirect_to(disk_wizards_engine.complete_path)
     else
       Device.progress = -1
       session[:exception] = result.inspect
-      redirect_to(defined?(disk_wizards_engine) ? disk_wizards_engine.error_path : error_path)
+      redirect_to(disk_wizards_engine.error_path)
     end
   end
 
