@@ -61,8 +61,8 @@ class DiskWizardController < ApplicationController
     @selected_disk = Device.find(user_selections['path'])
   end
 
+  # An AJAX call is made to this action, from process.html.erb to start processing the queue
   # Create operation queue according to user selections(user_selections), and enqueue operations
-  # Execute
   def process_disk
     path = user_selections['path']
     label = user_selections['label']
@@ -101,23 +101,34 @@ class DiskWizardController < ApplicationController
     end
   end
 
+  # Render progress page when click on apply button in 'confirmation' step
+  #  Implicitly send HTTP POST request to process_disk action to start processing the operations
+  # Expected key:values in @params:
+  #   :debug => Integer value(1) if debug mode has selected in forth step(confirmation), else nil
   def progress
     debug_mode = params[:debug]
     self.user_selections = {debug: debug_mode}
   end
 
+  # process_disk action redirects here if all operations are competed successfully
   def done
     @operations = CommandsExecutor.operations_log
     flash[:success] = 'All disks operations have been completed successfully!'
     @user_selections = self.user_selections
   end
 
+  # A helper method to return the user selections in the wizard
+  # @return Hash
   def user_selections
     return JSON.parse session[:user_selections] rescue nil
   end
 
   helper_method :user_selections
 
+  # Save user selections in a Rails session variable(Implicitly save data in browser cookie)
+  # Accept @param [Hash] hash
+  # Overwrite current user selection information with passed values.
+  # Encode Hash object to JSON format(flatten the object,enabling store in a SESSION) and store in a session variable.
   def user_selections=(hash)
     current_user_selections = user_selections
     unless current_user_selections
@@ -131,19 +142,30 @@ class DiskWizardController < ApplicationController
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Updated session[:user_selections] #{session[:user_selections]}"
   end
 
+  # Return JSON encoded progress message to view layer.
+  # This action is used by progress.html.erb to notify user about currently executing operation.
+  # From view layer, use pooling method(send AJAX request to here in every 1 second) to fetch the information from backend.
+  # TODO: Push data to front-end via a websocket instead of pooling(wast of bandwidth)
+  # Use current progress(percentage in Integer) to get the associated progress_message. TODO: change percentage to number of operations(i.e instead of 45% complete, show 4/10 operations completed)
   def operations_progress
     message = Device.progress_message(Device.progress)
     render json: {percentage: Device.progress, message: message}
   end
 
+  # Show errors/exceptions to the user  if an error occurred while processing the operations.
+  # Show the exceptions raised from the operating system level(stderr) via open3.
   def error
     @exception = session[:exception]
   end
 
+  # Clear the debug_mode flag.
+  # TODO: This is used as a befor_filter with exceptions,this might cause redundant calls to this method(reset the flag which has been already cleared)
   def clear_mode
     CommandsExecutor.debug_mode = nil
   end
 
+  # Generate fpaste URL which contains required information to debug an error.
+  # Directly calling system tools via open3 library not using CommandsExecutor library(Still able to generate debug URL even CommandsExecutor library fails).
   def debug_info
     require "open3"
     script_location = "/var/hda/apps/520ut3lo6w/elevated/"
