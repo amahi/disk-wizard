@@ -49,6 +49,7 @@ class DiskWizardController < ApplicationController
       self.user_selections = {fs_type: fs_type, format: format, path: partition}
     end
   end
+
   # Expected key:values in @params:
   #   :options => An integer value which maps to the type of option, selected in step 3
   #   i.e if mount options is selected , :options value will be 1
@@ -104,13 +105,13 @@ class DiskWizardController < ApplicationController
   # Render progress page when click on apply button in 'confirmation' step
   #  Implicitly send HTTP POST request to process_disk action to start processing the operations
   # Expected key:values in @params:
-  #   :debug => Integer value(1) if debug mode has selected in forth step(confirmation), else nil
+  #   :debug => Integer value(1) if debug mode has selected in fourth step(confirmation), else nil
   def progress
     debug_mode = params[:debug]
     self.user_selections = {debug: debug_mode}
   end
 
-  # process_disk action redirects here if all operations are competed successfully
+  # process_disk action redirects here if all operations are completed successfully
   def done
     @operations = CommandsExecutor.operations_log
     flash[:success] = 'All disks operations have been completed successfully!'
@@ -159,7 +160,7 @@ class DiskWizardController < ApplicationController
   end
 
   # Clear the debug_mode flag.
-  # TODO: This is used as a befor_filter with exceptions,this might cause redundant calls to this method(reset the flag which has been already cleared)
+  # TODO: This is used as a before_filter with exceptions,this might cause redundant calls to this method(reset the flag which has been already cleared)
   def clear_mode
     CommandsExecutor.debug_mode = nil
   end

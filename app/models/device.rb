@@ -2,10 +2,19 @@
 # inheriting ActiveRecord::Base is not necessary
 class Device #< ActiveRecord::Base
   include Operation
+  # Device attributes:
+  #   vendor : Device vendor i.e. Western Digital Technologies
+  #   model : Device model i.e. WDBLWE0120JCH
+  #   type : Device type i.e Disk, SSD, Tape etc.
+  #   size : Total capacity of the device
+  #   kname : Name appears in the `/dev/` directory, Kernal name given by the Udev daemon.
+  #   rm : Boolean flag, whether the device is removable or not
+  #   partitions : Array of partitions(Object) which belongs to the Device
   attr_reader :model, :size, :rm, :mkname, :multipath, :vendor
   attr_accessor :kname, :partitions
 
   def initialize disk
+# For reference, required attributes for device model
 =begin
 	std::vector<Partition> partitions ;
 	Sector length;
@@ -13,8 +22,8 @@ class Device #< ActiveRecord::Base
 	Sector sectors ;
 	Sector cylinders ; Number of cylinder
 	Sector cylsize ;# Cylinder size
-	Glib::ustring model;
- 	Glib::ustring disktype;
+	String model;
+ 	String disktype;
 	int sector_size ;
 	bool readonly ;
 =end
@@ -30,91 +39,22 @@ class Device #< ActiveRecord::Base
     end
   end
 
-  def self.all
-    # return array of Disk objects
-    devices= []
-    raw_devices = DiskUtils.all_devices
-    for device in raw_devices
-      device = Device.new device
-      devices.append device
-    end
-    return devices
-  end
-
+  #
+  # @return [String] Partition table type of the device(i.e. MSDOS, GPT, MAC, BSD etc.), if no partition table found return nil
   def partition_table
     return DiskUtils.partition_table self
   end
 
+  # @return [boolean] check the value of the @rm and return a boolean, true if the device is a removable device else false
   def removable?
     return self.rm.eql? 1
   end
 
-  def self.mounts
-    return PartitionUtils.new.info
-  end
+  # Delete all existing partitions and create single with entire device/disk space
+  # @param [Integer] fstype An Integer value which is mapped to a file system type in `Partition.FilesystemType` Hash
+  #                         Have use bit masking to prevent error typing the name of the file system type
 
-  def self.new_disks
-    fstab = Fstab.new
-    all_devices = Device.all
-    unmounted_devices = []
-    for device in all_devices
-      if device.partitions.blank?
-        unmounted_devices.push device
-        next
-      end
-      device.partitions.delete_if { |partition| (fstab.has_device? partition.path or partition.mountpoint) }
-      unmounted_devices.push device if not device.partitions.blank?
-    end
-    return unmounted_devices
-  end
-
-  def Device.progress
-    current_progress = Setting.find_by_kind_and_name('disk_wizard', 'operation_progress')
-    return 0 unless current_progress
-    current_progress.value.to_i
-  end
-
-  def Device.progress_message(percent)
-    case percent
-      when 0 then
-        "Preparing to partitioning ..."
-      when 10 then
-        "Looking for partition table ..."
-      when 20 then
-        "Partition table created ..."
-      when 40 then
-        "Formating the partition ..."
-      when 60 then
-        "Creating mount point ..."
-      when 80 then
-        "Mounting the partition ..."
-      when 100 then
-        "Disk operations completed."
-      when -1 then
-        "Fail (check /var/log/amahi-app-installer.log)."
-      else
-        "Unknown status at #{percent}% ."
-    end
-  end
-
-  # class methods for retrive information about the disks attached to the HDA
-  def Device.progress=(percentage)
-    #TODO: if user runs disk_wizard in two browsers concurrently,identifier should set to unique kname of the disk
-    current_progress = Setting.find_or_create_by('disk_wizard', 'operation_progress', percentage)
-    if percentage.nil?
-      current_progress && current_progress.destroy
-      return nil
-    end
-    current_progress.update_attribute(:value, percentage.to_s)
-    percentage
-  end
-
-  def self.removables
-    # return an array of removable (Disk objects) device absolute paths
-    DiskUtils.removables
-  end
-
-  # Delete all excisting partitions and create one partition from entire device/disk
+  # @param [String] label String value (Max 255 characters) to use as the label of the new partition
   def full_format fstype, label = nil
     DebugLogger.info "class = #{self.class.name}, method = #{__method__}"
     delete_all_partitions unless partitions.blank?
@@ -165,4 +105,84 @@ class Device #< ActiveRecord::Base
       partition.delete
     end
   end
+
+  class << self
+    def all
+      # return array of Disk objects
+      devices= []
+      raw_devices = DiskUtils.all_devices
+      for device in raw_devices
+        device = Device.new device
+        devices.append device
+      end
+      return devices
+    end
+
+    def mounts
+      return PartitionUtils.new.info
+    end
+
+    def new_disks
+      fstab = Fstab.new
+      all_devices = Device.all
+      unmounted_devices = []
+      for device in all_devices
+        if device.partitions.blank?
+          unmounted_devices.push device
+          next
+        end
+        device.partitions.delete_if { |partition| (fstab.has_device? partition.path or partition.mountpoint) }
+        unmounted_devices.push device if not device.partitions.blank?
+      end
+      return unmounted_devices
+    end
+
+    def removables
+      # return an array of removable (Disk objects) device absolute paths
+      DiskUtils.removables
+    end
+  end
+  # @deprecated
+  def Device.progress
+    current_progress = Setting.find_by_kind_and_name('disk_wizard', 'operation_progress')
+    return 0 unless current_progress
+    current_progress.value.to_i
+  end
+
+  # @deprecated
+  def Device.progress_message(percent)
+    case percent
+      when 0 then
+        "Preparing to partitioning ..."
+      when 10 then
+        "Looking for partition table ..."
+      when 20 then
+        "Partition table created ..."
+      when 40 then
+        "Formating the partition ..."
+      when 60 then
+        "Creating mount point ..."
+      when 80 then
+        "Mounting the partition ..."
+      when 100 then
+        "Disk operations completed."
+      when -1 then
+        "Fail (check /var/log/amahi-app-installer.log)."
+      else
+        "Unknown status at #{percent}% ."
+    end
+  end
+
+  # # @deprecated class methods for retrieve information about the disks attached to the HDA
+  def Device.progress=(percentage)
+    #TODO: if user runs disk_wizard in two browsers concurrently,identifier should set to unique kname of the disk
+    current_progress = Setting.find_or_create_by('disk_wizard', 'operation_progress', percentage)
+    if percentage.nil?
+      current_progress && current_progress.destroy
+      return nil
+    end
+    current_progress.update_attribute(:value, percentage.to_s)
+    percentage
+  end
+
 end
