@@ -70,7 +70,7 @@ class DiskWizardController < ApplicationController
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Selected disk/partition = #{path}"
     disk = Device.find path
 
-    CommandsExecutor.debug_mode = !!(self.user_selections['debug'])
+    CommandExecutor.debug_mode = !!(self.user_selections['debug'])
 
     jobs_queue = JobQueue.new(user_selections.length)
     jobs_queue.enqueue({job_name: :pre_checks_job, job_para: {path: path}})
@@ -102,18 +102,9 @@ class DiskWizardController < ApplicationController
     end
   end
 
-  # Render progress page when click on apply button in 'confirmation' step
-  #  Implicitly send HTTP POST request to process_disk action to start processing the operations
-  # Expected key:values in @params:
-  #   :debug => Integer value(1) if debug mode has selected in fourth step(confirmation), else nil
-  def progress
-    debug_mode = params[:debug]
-    self.user_selections = {debug: debug_mode}
-  end
-
   # process_disk action redirects here if all operations are completed successfully
   def done
-    @operations = CommandsExecutor.operations_log
+    @operations = CommandExecutor.operations_log
     flash[:success] = 'All disks operations have been completed successfully!'
     @user_selections = self.user_selections
   end
@@ -143,15 +134,6 @@ class DiskWizardController < ApplicationController
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Updated session[:user_selections] #{session[:user_selections]}"
   end
 
-  # Return JSON encoded progress message to view layer.
-  # This action is used by progress.html.erb to notify user about currently executing operation.
-  # From view layer, use pooling method(send AJAX request to here in every 1 second) to fetch the information from backend.
-  # TODO: Push data to front-end via a websocket instead of pooling(wast of bandwidth)
-  # Use current progress(percentage in Integer) to get the associated progress_message. TODO: change percentage to number of operations(i.e instead of 45% complete, show 4/10 operations completed)
-  def operations_progress
-    message = Device.progress_message(Device.progress)
-    render json: {percentage: Device.progress, message: message}
-  end
 
   # Show errors/exceptions to the user  if an error occurred while processing the operations.
   # Show the exceptions raised from the operating system level(stderr) via open3.
@@ -162,30 +144,7 @@ class DiskWizardController < ApplicationController
   # Clear the debug_mode flag.
   # TODO: This is used as a before_filter with exceptions,this might cause redundant calls to this method(reset the flag which has been already cleared)
   def clear_mode
-    CommandsExecutor.debug_mode = nil
-  end
-
-  # Generate fpaste URL which contains required information to debug an error.
-  # Directly calling system tools via open3 library not using CommandsExecutor library(Still able to generate debug URL even CommandsExecutor library fails).
-  def debug_info
-    require "open3"
-    script_location = "/var/hda/apps/520ut3lo6w/elevated/"
-    Open3.popen3("sudo", "./debug_info.sh", :chdir => script_location) { |stdin, stdout, stderr, wait_thr|
-      exit_status = wait_thr.value.exitstatus
-      if not (exit_status.equal? 0)
-        error = stderr.read
-        render json: {error: error}
-        return false
-      end
-      result = stdout.read
-      valid_url = /https?:\/\/[\S]+/
-      url = urls = nil
-      result.each_line do |line|
-        urls = line.split.grep(valid_url) if line.match valid_url
-      end
-      url = urls.group_by(&:size).max.last[0] if urls
-      render json: {url: url}
-    }
+    CommandExecutor.debug_mode = nil
   end
 
 end
