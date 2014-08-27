@@ -74,6 +74,7 @@ class Device #< ActiveRecord::Base
     return partitions.last
   end
 
+  # TODO: Take partition table type as an input parameter , set default to MSDOS
   def create_partition_table
     DiskUtils.create_partition_table self
   end

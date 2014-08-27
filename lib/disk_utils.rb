@@ -27,7 +27,7 @@ class DiskUtils
         command = "lsblk"
         params = " #{search} -b -P -o VENDOR,MODEL,TYPE,SIZE,KNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM"
       end
-      lsblk = CommandsExecutor.new command, params
+      lsblk = CommandExecutor.new command, params
       lsblk.execute
       raise "Command execution error: #{lsblk.stderr.read}" if not lsblk.success?
 
@@ -98,7 +98,7 @@ class DiskUtils
         command = "udevadm"
         params = " info  --query=property --name=#{kname}"
       end
-      udevadm = CommandsExecutor.new command, params
+      udevadm = CommandExecutor.new command, params
       udevadm.execute false, false # None blocking and not debug mode
       raise "Command execution error: #{udevadm.stderr.read}" if not udevadm.success?
       udevadm.result.each_line do |line|
@@ -109,14 +109,14 @@ class DiskUtils
       end
     end
 
-    def usage disk
-      kname = get_kname disk
+    def usage device
+      kname = get_kname device
       if DEBUG_MODE or Platform.ubuntu? or Platform.fedora?
         command = "df"
         params = "--block-size=1 /dev/#{kname}"
       end
 
-      df = CommandsExecutor.new command, params
+      df = CommandExecutor.new command, params
       df.execute false, false # None blocking and not debug mode
       raise "Command execution error: #{df.stderr.read}" if not df.success?
       line = df.result.lines.pop
@@ -125,13 +125,13 @@ class DiskUtils
       return {'used' => df_data[2].to_i, 'available' => df_data[3].to_i}
     end
 
-    def partition_table disk
-      kname = get_kname disk
+    def partition_table device
+      kname = get_kname device
       if DEBUG_MODE or Platform.ubuntu? or Platform.fedora?
         command = "parted"
         params = "-sm /dev/#{kname} unit b  print free" # Use parted machine parseable output,independent from O/S language -s for --script and -m for --machine
       end
-      parted = CommandsExecutor.new command, params
+      parted = CommandExecutor.new command, params
       parted.execute false, false # None blocking and not debug mode
       return false if not parted.success?
 
@@ -142,12 +142,12 @@ class DiskUtils
       return table_type
     end
 
-    def umount disk
+    def umount device
       #un-mounting not guaranteed, remain mounted if device is busy
-      kname = get_kname disk
+      kname = get_kname device
       command = "umount"
       params = " -fl /dev/#{kname}"
-      umount = CommandsExecutor.new command, params
+      umount = CommandExecutor.new command, params
       #TODO: This should be a none-blocking call, until unmount the disk/device successfully, can't proceed with other works
       umount.execute
       raise "Command execution error: #{umount.stderr.read}" if not umount.success?
@@ -164,32 +164,32 @@ class DiskUtils
       #remount all
       command = "mount"
       params = "#{disk.path} #{mount_point}"
-      mount = CommandsExecutor.new command, params
+      mount = CommandExecutor.new command, params
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Mount executing"
       mount.execute
       raise "Command execution error: #{mount.stderr.read}" if not mount.success?
     end
 
-    def format disk, fstype
+    def format device, fstype
       case fstype
         when Partition.FilesystemType[:TYPE_EXT4]
-          params = " -q #{disk.path}"
+          params = " -q #{device.path}"
           program_name = 'ext4'
         when Partition.FilesystemType[:TYPE_EXT3]
-          params = " -q #{disk.path}"
+          params = " -q #{device.path}"
           program_name = 'ext3'
         when Partition.FilesystemType[:TYPE_NTFS]
-          params = " -q -f #{disk.path}" # Perform quick (fast) format and -q for quiet execution
+          params = " -q -f #{device.path}" # Perform quick (fast) format and -q for quiet execution
           program_name = 'ntfs'
         when Partition.FilesystemType[:TYPE_FAT32]
-          params = " #{disk.path}"
+          params = " #{device.path}"
           program_name = 'vfat'
         else
           raise "#{fstype} Filesystem type not supported.Please re-try with diffrent filesystem."
       end
       command = "mkfs.#{program_name} "
-      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Disk.kname = #{disk.kname}, fstype = #{fstype} format params = #{params}"
-      mkfs = CommandsExecutor.new command, params
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Disk.kname = #{device.kname}, fstype = #{fstype} format params = #{params}"
+      mkfs = CommandExecutor.new command, params
       mkfs.execute
       raise "Command execution error: #{mkfs.stderr.read}" if not mkfs.success?
     end
@@ -198,7 +198,7 @@ class DiskUtils
     def create_partition device, partition_type = 'primary', start_unit, end_unit
       command = 'parted'
       params = "#{device.path} -s -a optimal unit MB mkpart #{partition_type} ext3 #{start_unit} -- #{end_unit}"
-      parted = CommandsExecutor.new command, params
+      parted = CommandExecutor.new command, params
       parted.execute
       raise "Command execution error: #{parted.stderr.read}" if not parted.success?
       probe_kernal device
@@ -208,7 +208,7 @@ class DiskUtils
     def create_partition_table device, type = 'msdos'
       command = 'parted'
       params = "--script #{device.path} mklabel #{type}"
-      parted = CommandsExecutor.new command, params
+      parted = CommandExecutor.new command, params
       parted.execute
       raise "Command execution error: #{parted.stderr.read}" if not parted.success?
       probe_kernal device #inform the OS of partition table changes
@@ -225,7 +225,7 @@ class DiskUtils
       device_path = partition.device.path
       command = 'parted'
       params = "--script #{device_path} rm #{partition.partition_number}"
-      parted = CommandsExecutor.new command, params
+      parted = CommandExecutor.new command, params
       parted.execute
       raise "Command execution error: #{parted.stderr.read}" if not parted.success?
       probe_kernal device_path
@@ -239,7 +239,7 @@ class DiskUtils
       commands['hdparm'] = " -z #{device_path}" if not device_path.nil? # Do not execute 'hdparm' when device/partition is not given.
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Commands = #{commands}"
       commands.each do |command, args|
-        executor = CommandsExecutor.new(command, args)
+        executor = CommandExecutor.new(command, args)
         executor.execute()
         DebugLogger.info "Command execution error: #{executor.stderr.read}" if not executor.success? # Suppress warnings and errors,don't re-raise the exception.only do notify the kernel,Warnings and errors are out of the DW scope
       end
@@ -269,7 +269,7 @@ class DiskUtils
         return "/dev/#{kname}"
       end
       command = "blkid"
-      blkid = CommandsExecutor.new command, params
+      blkid = CommandExecutor.new command, params
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:device = #{device.kname}, uuid = #{device.uuid}, params = #{params}"
       blkid.execute
       raise "Command execution error:blkid error: #{blkid.stderr.read}" if not blkid.success?
@@ -283,7 +283,7 @@ class DiskUtils
         command = "udevadm"
         params = " info  --query=property --name=#{child_path}"
       end
-      udevadm = CommandsExecutor.new command, params
+      udevadm = CommandExecutor.new command, params
       udevadm.execute false, false # None blocking and not debug mode
       raise "Command execution error: #{udevadm.stderr.read}" if not udevadm.success?
       udevadm.result.each_line do |line|
@@ -297,7 +297,7 @@ class DiskUtils
         command = "lsblk"
         params = " -b -P -o VENDOR,MODEL,TYPE,SIZE,KNAME,UUID,LABEL,MOUNTPOINT,FSTYPE,RM,MAJ:MIN"
       end
-      lsblk = CommandsExecutor.new command, params
+      lsblk = CommandExecutor.new command, params
       lsblk.execute
       raise "Command execution error: #{lsblk.stderr.read}" if not lsblk.success?
       lsblk.result.each_line do |line|
@@ -318,7 +318,7 @@ class DiskUtils
     def clear_multipath
       command = 'multipath'
       params = ' -F'
-      multipath = CommandsExecutor.new command, params
+      multipath = CommandExecutor.new command, params
       if which command
         multipath.execute
         raise "Command execution error: #{multipath.stderr.read}" if not multipath.success?
@@ -331,7 +331,7 @@ class DiskUtils
       # Get partition number from Udevadmn, instead of getting the last numeric value from kname from regex pattern
       command = "udevadm"
       params = " info  --query=property --name=#{partition_path}"
-      udevadm = CommandsExecutor.new command, params
+      udevadm = CommandExecutor.new command, params
       udevadm.execute
       raise "Command execution error: #{udevadm.stderr.read}" if not udevadm.success?
       udevadm.result.each_line do |line|
@@ -371,7 +371,7 @@ class DiskUtils
     def create_directory location
       command = "mkdir"
       params = "-p -m 757 #{location}"
-      mkdir = CommandsExecutor.new command, params
+      mkdir = CommandExecutor.new command, params
       mkdir.execute
       raise "Command execution error: #{mkdir.stderr.read}" if not mkdir.success?
     end
@@ -387,7 +387,7 @@ class DiskUtils
         else
           params = " #{action} #{systemd_name}"
       end
-      systemctl = CommandsExecutor.new command, params
+      systemctl = CommandExecutor.new command, params
       systemctl.execute
       raise "Command execution error: #{systemctl.stderr.read}" if not systemctl.success?
       if action == 'show'

@@ -22,7 +22,7 @@ class SystemUtils
       kname = get_kname disk
       command = "umount"
       params = " -fl /dev/#{kname}"
-      umount = CommandsExecutor.new command, params
+      umount = CommandExecutor.new command, params
       #TODO: This should be a none-blocking call, until unmount the disk/device successfully, can't proceed with other works
       umount.execute
       raise "Command execution error: #{umount.stderr.read}" if not umount.success?
@@ -39,7 +39,7 @@ class SystemUtils
       #remount all
       command = "mount"
       params = "#{disk.path} #{mount_point}"
-      mount = CommandsExecutor.new command, params
+      mount = CommandExecutor.new command, params
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Mount executing"
       mount.execute
       raise "Command execution error: #{mount.stderr.read}" if not mount.success?
@@ -53,7 +53,7 @@ class SystemUtils
       commands['hdparm'] = " -z #{device_path}" if not device_path.nil? # Do not execute 'hdparm' when device/partition is not given.
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Commands = #{commands}"
       commands.each do |command, args|
-        executor = CommandsExecutor.new(command, args)
+        executor = CommandExecutor.new(command, args)
         executor.execute()
         DebugLogger.info "Command execution error: #{executor.stderr.read}" if not executor.success? # Suppress warnings and errors,don't re-raise the exception.only do notify the kernel,Warnings and errors are out of the DW scope
       end
@@ -76,7 +76,7 @@ class SystemUtils
     def clear_multipath
       command = 'multipath'
       params = ' -F'
-      multipath = CommandsExecutor.new command, params
+      multipath = CommandExecutor.new command, params
       if which command
         multipath.execute
         raise "Command execution error: #{multipath.stderr.read}" if not multipath.success?
@@ -85,12 +85,10 @@ class SystemUtils
       end
     end
 
-    private
-
     def create_directory location
       command = "mkdir"
       params = "-p -m 757 #{location}"
-      mkdir = CommandsExecutor.new command, params
+      mkdir = CommandExecutor.new command, params
       mkdir.execute
       raise "Command execution error: #{mkdir.stderr.read}" if not mkdir.success?
     end
@@ -106,7 +104,7 @@ class SystemUtils
         else
           params = " #{action} #{systemd_name}"
       end
-      systemctl = CommandsExecutor.new command, params
+      systemctl = CommandExecutor.new command, params
       systemctl.execute
       raise "Command execution error: #{systemctl.stderr.read}" if not systemctl.success?
       if action == 'show'

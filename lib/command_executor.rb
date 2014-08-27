@@ -16,9 +16,9 @@
 
 require "open3"
 
-# CommandsExecutor class which act as a bridge between system level dsk-wzd.sh bash script and rails
-# Named as 'CommandsExecutor' to prevent class name conflicts('Command' library), when intergrating disk-wizard as Amahi plugin app
-class CommandsExecutor
+# CommandExecutor class which act as a bridge between system level dsk-wzd.sh bash script and rails
+# Named as 'CommandExecutor' to prevent class name conflicts('Command' library), when intergrating disk-wizard as Amahi plugin app
+class CommandExecutor
   attr_reader :stdin, :stdout, :stderr, :success
   cattr_accessor :operations_log
   # `debug_mode` class variable which hold the current executing mode of the commands,if true, commands will not be executed on the system level instead command(operation) will be loged(in @@operations_log) for future use
@@ -43,7 +43,7 @@ class CommandsExecutor
     return @@operations_log
   end
 
-  # Initialize CommandsExecutor object
+  # Initialize CommandExecutor object
   # == Parameters:
   #     command
   #     parameters Default set to `nil` to allow execution of commands, with no arguments i.e. pwd
@@ -65,7 +65,8 @@ class CommandsExecutor
     end
 
     if debug
-      self.success = -1
+      # success required to be a boolean value , -1 implies command doesn't execute at all(Debug mode)
+      @success = -1
       return
     end
 
@@ -92,10 +93,6 @@ class CommandsExecutor
 
   def success?
     !!(@success)
-  end
-
-  def success=(status)
-    self.instance_variable_set(:@success, status)
   end
 
   def result
