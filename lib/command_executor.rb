@@ -55,7 +55,7 @@ class CommandExecutor
   # Execute the command with assigned parameters when initializing the object
   # == Parameters:
   #     blocking is true  =~ Command.run_now or blocking is not true  =~ command.execute
-  def execute blocking = false, debug = @@debug_mode
+  def execute blocking = true, debug = @@debug_mode
     #If user select debug mode
     #1. push current command(command name and parameters) to `operations_log` array, where it will be used to list all the operations took place during the debug mode
     #2. Return from the method immediately,to prevent executing further
@@ -76,7 +76,7 @@ class CommandExecutor
     begin
       if blocking
         Open3.popen3("sudo", "./dsk-wz.sh", @command, @parameters, :chdir => script_location) do |stdin, stdout, stderr, wait_thr|
-          @stdout = stdout; @stderr = stderr; @wait_thr = wait_thr
+          @stdout = stdout.read; @stderr = stderr.read; @wait_thr = wait_thr.value
         end
       else
         _, @stdout, @stderr, @wait_thr = Open3.popen3("sudo", "./dsk-wz.sh", @command, @parameters, :chdir => script_location)
@@ -85,10 +85,10 @@ class CommandExecutor
       @success = false
       raise error
     end
-    @exit_status = @wait_thr.value.exitstatus
+    @exit_status = @wait_thr.exitstatus
     @pid = @wait_thr.pid
-    @result = @stdout.read
-    @success = @wait_thr.value.success?
+    @result = @stdout
+    @success = @wait_thr.success?
   end
 
   def success?
