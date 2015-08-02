@@ -5,7 +5,7 @@
 
     function getDevices() {
         $.ajax({
-            url: "/tab/disks/disk_wizard/get_all_devices",
+            url: '<%= disk_wizards_engine.get_all_devices_path%>',
             async: true,
             dataType: 'script',
             type: "GET",
