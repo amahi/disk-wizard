@@ -30,8 +30,8 @@ class DiskUtils
       lsblk = CommandExecutor.new command, params
       lsblk.execute
       raise "Command execution error: #{lsblk.stderr.read}" if not lsblk.success?
-
-      lsblk.result.each_line do |line|
+      lsblk.result.each_line.with_index do |line, idx|
+        next if idx == 0
         data_hash = {}
         line.squish!
         line_data = line.gsub!(/"(.*?)"/, '\1#').split "#"
@@ -99,7 +99,7 @@ class DiskUtils
         params = " info  --query=property --name=#{kname}"
       end
       udevadm = CommandExecutor.new command, params
-      udevadm.execute false, false # None blocking and not debug mode
+      udevadm.execute #false, false # None blocking and not debug mode
       raise "Command execution error: #{udevadm.stderr.read}" if not udevadm.success?
       udevadm.result.each_line do |line|
         line.squish!
@@ -117,7 +117,7 @@ class DiskUtils
       end
 
       df = CommandExecutor.new command, params
-      df.execute false, false # None blocking and not debug mode
+      df.execute #false, false # None blocking and not debug mode
       raise "Command execution error: #{df.stderr.read}" if not df.success?
       line = df.result.lines.pop
       line.gsub!(/"/, '')
@@ -132,7 +132,7 @@ class DiskUtils
         params = "-sm /dev/#{kname} unit b  print free" # Use parted machine parseable output,independent from O/S language -s for --script and -m for --machine
       end
       parted = CommandExecutor.new command, params
-      parted.execute false, false # None blocking and not debug mode
+      parted.execute #false, false # None blocking and not debug mode
       return false if not parted.success?
 
       # REFERENCE: http://lists.alioth.debian.org/pipermail/parted-devel/2006-December/000573.html
@@ -241,7 +241,7 @@ class DiskUtils
       commands.each do |command, args|
         executor = CommandExecutor.new(command, args)
         executor.execute()
-        DebugLogger.info "Command execution error: #{executor.stderr.read}" if not executor.success? # Suppress warnings and errors,don't re-raise the exception.only do notify the kernel,Warnings and errors are out of the DW scope
+        raise "Command execution error: #{executor.stderr}" if not executor.success? # Suppress warnings and errors,don't re-raise the exception.only do notify the kernel,Warnings and errors are out of the DW scope
       end
     end
 
@@ -321,7 +321,7 @@ class DiskUtils
       multipath = CommandExecutor.new command, params
       if which command
         multipath.execute
-        raise "Command execution error: #{multipath.stderr.read}" if not multipath.success?
+        raise "Command execution error: #{multipath.stderr}" if not multipath.success?
       else
         return false
       end

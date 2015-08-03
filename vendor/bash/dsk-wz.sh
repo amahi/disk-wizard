@@ -51,8 +51,10 @@ fdisk)
 	executor $command $arguments;
 ;;
 *)
+	executor $command $arguments;
 	# if a command is not one we know, we exit with an error
 	echo "Sorry, command $command is not known";
-	exit -1;
+	exit 1;
 ;;
 esac
+exit 1;
