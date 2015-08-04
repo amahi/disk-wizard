@@ -31,8 +31,7 @@ class DiskUtils
       lsblk = CommandExecutor.new command, params
       lsblk.execute
       raise "Command execution error: #{lsblk.stderr}" if not lsblk.success?
-      lsblk.result.each_line.with_index do |line, idx|
-        next if idx == 0
+      lsblk.result.each_line do |line|
         data_hash = {}
         line.squish!
         line_data = line.gsub!(/"(.*?)"/, '\1#').split "#"

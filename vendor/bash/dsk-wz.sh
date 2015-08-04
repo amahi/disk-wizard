@@ -22,7 +22,7 @@ executor(){
 	local command=$1;
 	shift;
 	local params="$*";
-	echo  "Start executing $command with arguments = $params" | write_log;
+	# echo  "Start executing $command with arguments = $params" | write_log;
 	exec sudo $command $params #>> dsw.log 2>&1;
 }
 
