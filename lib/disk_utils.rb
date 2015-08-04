@@ -19,6 +19,7 @@ class DiskUtils
     # Return an array of all the attached devices, including hard disks,flash/removable/external devices etc.
     # If search is given only search for the given path.
     def all_devices search = nil
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Search = #{search}"
       partitions = []
       devices = []
       device = nil

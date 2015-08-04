@@ -79,6 +79,7 @@ class CommandExecutor
       end
     rescue => error
       @success = false
+      DebugLogger.error "|#{self.class.name}|>|#{__method__}|:failed executing `#{@command}` Error is #{@stderr}"
       raise error
     end
     @exit_status = @wait_thr.exitstatus
