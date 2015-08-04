@@ -62,6 +62,15 @@ class DiskWizardController < ApplicationController
     @selected_disk = Device.find(user_selections['path'])
   end
 
+  # Render progress page when click on apply button in 'confirmation' step
+  #  Implicitly send HTTP POST request to process_disk action to start processing the operations
+  # Expected key:values in @params:
+  #   :debug => Integer value(1) if debug mode has selected in fourth step(confirmation), else nil
+  def progress
+    debug_mode = params[:debug]
+    self.user_selections = {debug: debug_mode}
+  end
+
   # An AJAX call is made to this action, from process.html.erb to start processing the queue
   # Create operation queue according to user selections(user_selections), and enqueue operations
   def process_disk
