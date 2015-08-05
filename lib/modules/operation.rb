@@ -37,7 +37,21 @@ module Operation
     # TODO: Implement rollback mechanism, if something went wrong bring back the system to original state,where it was before stating DW
     # TODO/Suggestion: Acquire a lock through 'flock()',for the device/partition involved.
     selected_element = Device.find params_hash[:path]
-    selected_element.unmount if (selected_element.instance_of? Partition and selected_element.mountpoint)
+    if selected_element.instance_of? Partition
+      #umount if the partition is mounted
+      if selected_element.mountpoint
+        selected_element.unmount
+      end
+    else
+      #unmount all device partitions
+      #TODO: determind if the operation need to umount all partitions or not
+      selected_element.partitions.each do|partition|
+        if partition.mountpoint
+          DebugLogger.info "|#{self.class.name}|>|#{__method__}|: unmount partion dev/#{partition.kname}"
+          partition.unmount
+        end
+      end
+    end
     DiskUtils.clear_multipath
   end
 
