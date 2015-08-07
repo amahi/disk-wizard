@@ -142,6 +142,41 @@ class DiskUtils
       return table_type
     end
 
+    def label_partition partition_kname, label
+      filesystem = get_fs_partition partition_kname
+      case filesystem
+      when "ext3", "ext4", "ext2"
+        command = "e2label"
+      when "vfat"
+        # TODO: check prevent user to write label > 11 character in UI
+        command = "fatlabel"
+      when "ntfs"
+        command = "ntfslabel"
+      else
+        raise "this partititon filesystem '#{filesystem}' not supported"
+      end
+
+      params = " /dev/#{partition_kname} '#{label}'"
+      label_pr = CommandExecutor.new command, params
+      label_pr.execute
+      raise "Command execution error: Add label = #{label}|message: #{label_pr.stderr}" if not label_pr.success?
+    end
+
+    # Return the filesystem of partition
+    def get_fs_partition partition_kname
+      command = "blkid"
+      params = "-p -o export -u filesystem /dev/#{partition_kname}"
+      blkid = CommandExecutor.new command, params
+      blkid.execute
+      raise "Command execution error: #{blkid.stderr}" if not blkid.success?
+      blkid.result.each_line do |line|
+        line.strip!.chomp!
+        key, value = line.split('=')
+        return value if key.eql? "TYPE"
+      end
+      raise "Cannot find partition file system with this path /dev/#{partition_kname}"
+    end
+
     def umount device
       #un-mounting not guaranteed, remain mounted if device is busy
       kname = get_kname device

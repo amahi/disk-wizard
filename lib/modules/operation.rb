@@ -1,5 +1,5 @@
 module Operation
-
+  DRIVE_MOUNT_ROOT = "/var/hda/files/drives"
   # Remove the partition from device/disk
   def delete
     #TODO: remove fstab entry if disk is permanently mounted
@@ -9,15 +9,25 @@ module Operation
 
   # Mount the partition with the given label, if no label is given kname will be used as default label
   def mount label
+    # TODO: Check if there is any device mounted with same mount_point
     self.reload
     label ||= self.kname
-    mount_point = File.join '/var/hda/files/drives/', label
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:mount partition with label #{label} it's mountpoint is #{self.mountpoint}"
+    self.label_partition label
+    mount_point = File.join DRIVE_MOUNT_ROOT, label
     DiskUtils.mount mount_point, self
   end
 
   # Unmount the partition
   def unmount
     DiskUtils.umount self
+  end
+
+  # Add label to partition
+  def label_partition label
+    raise "Cannot add label to a #{self.class.name} device" unless instance_of? Partition
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Add '#{label}' label to #{self.kname} partition"
+    DiskUtils.label_partition self.kname, label
   end
 
   # Format the partition to given file system type
@@ -41,6 +51,7 @@ module Operation
       #umount if the partition is mounted
       if selected_element.mountpoint
         selected_element.unmount
+        DebugLogger.info "|#{self.class.name}|>|#{__method__}|:umount partition from #{@mountpoint}"
       end
     else
       #unmount all device partitions
