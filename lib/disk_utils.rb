@@ -198,7 +198,7 @@ class DiskUtils
 
       #remount all
       command = "mount"
-      params = "#{disk.path} #{mount_point}"
+      params = "#{disk.path} '#{mount_point}'"
       mount = CommandExecutor.new command, params
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Mount executing"
       mount.execute
@@ -405,7 +405,7 @@ class DiskUtils
 
     def create_directory location
       command = "mkdir"
-      params = "-p -m 757 #{location}"
+      params = "-p -m 757 '#{location}'"
       mkdir = CommandExecutor.new command, params
       mkdir.execute
       raise "Command execution error: #{mkdir.stderr}" if not mkdir.success?
