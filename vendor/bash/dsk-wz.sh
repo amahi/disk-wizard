@@ -12,7 +12,12 @@ write_log()
 				LOGTIME=`date "+%Y-%m-%d %H:%M:%S"`
 				LOG="dsw.log"
 				touch $LOG
-				if [ ! -f $LOG ]; then echo "ERROR!! Cannot create log file $LOG. Exiting."; exit -1; fi
+				if [ ! -f $LOG ]; then
+					message="ERROR!! Cannot create log file $LOG. Exiting.";
+					echo -e $message >&2;
+					echo  $message | write_log;
+					exit -1;
+				fi
 				echo $LOGTIME": $text" >> $LOG;
 			fi
   done
@@ -28,7 +33,9 @@ executor(){
 
 if [ $# -lt 2 ]
 	then
-		echo -e "An insufficient number of arguments(arguments)" | write_log ;
+		message="An insufficient number of arguments";
+		echo -e $message >&2;
+		echo  $message | write_log;
 		exit -1;
 fi
 
@@ -38,21 +45,17 @@ arguments="$@";
 
 # Pattern matching Ref: http://goo.gl/JnXS5y
 case $command in
-parted)
+parted | mkfs.* | lsblk | fdisk | df | udevadm | e2label | fatlabel | ntfslabel | blkid |\
+	umount | mount | partprobe | echo | trigger | hdparm | multipath | mkdir | systemctl)
 	executor $command $arguments;
 ;;
-mkfs.*)
-	executor $command $arguments;
-;;
-lsblk)
-	executor $command $arguments;
-;;
-fdisk)
-	executor $command $arguments;
-;;
+
 *)
-	executor $command $arguments;
-	# if a command is not one we know, we exit with an error
+		# if a command is not one we know, we exit with an error
+		message="Sorry, command $command is not known";
+		echo -e $message >&2;
+		echo  $message | write_log;
+		exit -1;
 ;;
 esac
 exit 0;
