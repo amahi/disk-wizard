@@ -2,6 +2,10 @@
 # inheriting ActiveRecord::Base is not necessary
 class Device #< ActiveRecord::Base
   include Operation
+
+  # 2 Tera byte is the edge between MBR and GPT
+  GPT_EDGE = 2 * 1024 * 1024 * 1024 * 1024
+
   # Device attributes:
   #   vendor : Device vendor i.e. Western Digital Technologies
   #   model : Device model i.e. WDBLWE0120JCH
@@ -75,17 +79,27 @@ class Device #< ActiveRecord::Base
   end
 
   # TODO: Take partition table type as an input parameter , set default to MSDOS
-  def create_partition_table
-    DiskUtils.create_partition_table self
+  def create_partition_table type = 'msdos'
+    DiskUtils.create_partition_table self, type
   end
 
   def format_job params_hash
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Params_hash #{params_hash}"
     new_fstype = params_hash[:fs_type]
     Device.progress = 10
-    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Create partition_table #{partition_table}"
     #TODO: check the disk size and pass the relevent partition table type (i.e. if device size >= 3TB create GPT table else MSDOS(MBR))
-    create_partition_table unless partition_table
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:partition_table is '#{partition_table}'"
+    table = partition_table
+    if table.eql? "unknown" or table.eql? nil
+      if self.size.to_i > GPT_EDGE
+        table_type = 'gpt'
+      else
+        table_type = 'msdos'
+      end
+      create_partition_table table_type
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Create new partition_table of type #{table_type}"
+    end
+
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Full format label #{params_hash[:label]}"
     full_format new_fstype, params_hash[:label]
     Device.progress = 40
