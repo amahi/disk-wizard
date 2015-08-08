@@ -45,14 +45,4 @@ class DiskServiceController < ApplicationController
     message = Device.progress_message(Device.progress)
     render json: {percentage: Device.progress, message: message}
   end
-
-  # Render progress page when click on apply button in 'confirmation' step
-  #  Implicitly send HTTP POST request to process_disk action to start processing the operations
-  # Expected key:values in @params:
-  #   :debug => Integer value(1) if debug mode has selected in fourth step(confirmation), else nil
-  def progress
-    debug_mode = params[:debug]
-    self.user_selections = {debug: debug_mode}
-  end
-
 end

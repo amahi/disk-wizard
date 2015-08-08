@@ -80,12 +80,12 @@ class Fstab
     params = "  #{@contents} ! sudo tee /etc/fstab"
     echo = CommandExecutor.new command, params
     echo.execute
-    raise "Command execution error: #{echo.stderr.read}" if not echo.success?
+    raise "Command execution error: #{echo.stderr}" if not echo.success?
     command = "echo"
     params = " #{format_entry(dev, opts)} ! sudo tee -a /etc/fstab"
     echo = CommandExecutor.new command, params
     echo.execute
-    raise "Command execution error: #{echo.stderr.read}" if not echo.success?
+    raise "Command execution error: #{echo.stderr}" if not echo.success?
     reload
   end
 
@@ -251,7 +251,7 @@ class Fstab
     blkid = CommandExecutor.new command, params
     DebugLogger.info "|Fstab|>|#{__method__}|:device = #{dev}"
     blkid.execute
-    raise "Command execution error:blkid error: #{blkid.stderr.read}" if not blkid.success?
+    raise "Command execution error:blkid error: #{blkid.stderr}" if not blkid.success?
     blkid.result.each_line do |line|
       line.strip!.chomp!
       key, value = line.split('=')
@@ -322,7 +322,7 @@ class Fstab
 
     echo = CommandExecutor.new command, params
     echo.execute
-    raise "Command execution error: #{echo.stderr.read}" if not echo.success?
+    raise "Command execution error: #{echo.stderr}" if not echo.success?
     # File.open("#{@backup_dir}/fstab.#{Time.now.to_f}.bak", 'w') do |f|
     # f.puts @contents
     # end

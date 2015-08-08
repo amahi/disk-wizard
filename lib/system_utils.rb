@@ -25,7 +25,7 @@ class SystemUtils
       umount = CommandExecutor.new command, params
       #TODO: This should be a none-blocking call, until unmount the disk/device successfully, can't proceed with other works
       umount.execute
-      raise "Command execution error: #{umount.stderr.read}" if not umount.success?
+      raise "Command execution error: #{umount.stderr}" if not umount.success?
     end
 
     def mount mount_point, disk
@@ -38,11 +38,11 @@ class SystemUtils
 
       #remount all
       command = "mount"
-      params = "#{disk.path} #{mount_point}"
+      params = "#{disk.path} '#{mount_point}'"
       mount = CommandExecutor.new command, params
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Mount executing"
       mount.execute
-      raise "Command execution error: #{mount.stderr.read}" if not mount.success?
+      raise "Command execution error: #{mount.stderr}" if not mount.success?
     end
 
     def probe_kernal device_path = nil
@@ -55,7 +55,7 @@ class SystemUtils
       commands.each do |command, args|
         executor = CommandExecutor.new(command, args)
         executor.execute()
-        DebugLogger.info "Command execution error: #{executor.stderr.read}" if not executor.success? # Suppress warnings and errors,don't re-raise the exception.only do notify the kernel,Warnings and errors are out of the DW scope
+        DebugLogger.info "Command execution error: #{executor.stderr}" if not executor.success? # Suppress warnings and errors,don't re-raise the exception.only do notify the kernel,Warnings and errors are out of the DW scope
       end
     end
 
@@ -79,7 +79,7 @@ class SystemUtils
       multipath = CommandExecutor.new command, params
       if which command
         multipath.execute
-        raise "Command execution error: #{multipath.stderr.read}" if not multipath.success?
+        DebugLogger.error "|#{self.class.name}|>|#{__method__}|: Command execution error: #{multipath.stderr}" unless multipath.success?
       else
         return false
       end
@@ -87,10 +87,10 @@ class SystemUtils
 
     def create_directory location
       command = "mkdir"
-      params = "-p -m 757 #{location}"
+      params = "-p -m 757 '#{location}'"
       mkdir = CommandExecutor.new command, params
       mkdir.execute
-      raise "Command execution error: #{mkdir.stderr.read}" if not mkdir.success?
+      raise "Command execution error: #{mkdir.stderr}" if not mkdir.success?
     end
 
     def systemctl_wrapper systemd_name, action
@@ -106,7 +106,7 @@ class SystemUtils
       end
       systemctl = CommandExecutor.new command, params
       systemctl.execute
-      raise "Command execution error: #{systemctl.stderr.read}" if not systemctl.success?
+      raise "Command execution error: #{systemctl.stderr}" if not systemctl.success?
       if action == 'show'
         _, description = systemctl.result.lines[0].squish!.split('=')
         _, active = systemctl.result.lines[1].squish!.split('=')

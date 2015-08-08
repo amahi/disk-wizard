@@ -19,6 +19,7 @@ class DiskUtils
     # Return an array of all the attached devices, including hard disks,flash/removable/external devices etc.
     # If search is given only search for the given path.
     def all_devices search = nil
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Search = #{search}"
       partitions = []
       devices = []
       device = nil
@@ -29,9 +30,8 @@ class DiskUtils
       end
       lsblk = CommandExecutor.new command, params
       lsblk.execute
-      raise "Command execution error: #{lsblk.stderr.read}" if not lsblk.success?
-      lsblk.result.each_line.with_index do |line, idx|
-        next if idx == 0
+      raise "Command execution error: #{lsblk.stderr}" if not lsblk.success?
+      lsblk.result.each_line do |line|
         data_hash = {}
         line.squish!
         line_data = line.gsub!(/"(.*?)"/, '\1#').split "#"
@@ -99,8 +99,8 @@ class DiskUtils
         params = " info  --query=property --name=#{kname}"
       end
       udevadm = CommandExecutor.new command, params
-      udevadm.execute #false, false # None blocking and not debug mode
-      raise "Command execution error: #{udevadm.stderr.read}" if not udevadm.success?
+      udevadm.execute false # Not debug mode
+      raise "Command execution error: #{udevadm.stderr}" if not udevadm.success?
       udevadm.result.each_line do |line|
         line.squish!
         key = 'ID_PART_ENTRY_TYPE'
@@ -117,8 +117,8 @@ class DiskUtils
       end
 
       df = CommandExecutor.new command, params
-      df.execute #false, false # None blocking and not debug mode
-      raise "Command execution error: #{df.stderr.read}" if not df.success?
+      df.execute false # Not debug mode
+      raise "Command execution error: #{df.stderr}" if not df.success?
       line = df.result.lines.pop
       line.gsub!(/"/, '')
       df_data = line.split(" ")
@@ -132,7 +132,7 @@ class DiskUtils
         params = "-sm /dev/#{kname} unit b  print free" # Use parted machine parseable output,independent from O/S language -s for --script and -m for --machine
       end
       parted = CommandExecutor.new command, params
-      parted.execute #false, false # None blocking and not debug mode
+      parted.execute false # Not debug mode
       return false if not parted.success?
 
       # REFERENCE: http://lists.alioth.debian.org/pipermail/parted-devel/2006-December/000573.html
@@ -140,6 +140,41 @@ class DiskUtils
       device_info = parted.result.lines[1].squish.split ':' # Remove trailing newline character(s)
       table_type = device_info[5]
       return table_type
+    end
+
+    def label_partition partition_kname, label
+      filesystem = get_fs_partition partition_kname
+      case filesystem
+      when "ext3", "ext4", "ext2"
+        command = "e2label"
+      when "vfat"
+        # TODO: check prevent user to write label > 11 character in UI
+        command = "fatlabel"
+      when "ntfs"
+        command = "ntfslabel"
+      else
+        raise "this partititon filesystem '#{filesystem}' not supported"
+      end
+
+      params = " /dev/#{partition_kname} '#{label}'"
+      label_pr = CommandExecutor.new command, params
+      label_pr.execute
+      raise "Command execution error: Add label = #{label}|message: #{label_pr.stderr}" if not label_pr.success?
+    end
+
+    # Return the filesystem of partition
+    def get_fs_partition partition_kname
+      command = "blkid"
+      params = "-p -o export -u filesystem /dev/#{partition_kname}"
+      blkid = CommandExecutor.new command, params
+      blkid.execute
+      raise "Command execution error: #{blkid.stderr}" if not blkid.success?
+      blkid.result.each_line do |line|
+        line.strip!.chomp!
+        key, value = line.split('=')
+        return value if key.eql? "TYPE"
+      end
+      raise "Cannot find partition file system with this path /dev/#{partition_kname}"
     end
 
     def umount device
@@ -150,7 +185,7 @@ class DiskUtils
       umount = CommandExecutor.new command, params
       #TODO: This should be a none-blocking call, until unmount the disk/device successfully, can't proceed with other works
       umount.execute
-      raise "Command execution error: #{umount.stderr.read}" if not umount.success?
+      raise "Command execution error: #{umount.stderr}" if not umount.success?
     end
 
     def mount mount_point, disk
@@ -163,11 +198,11 @@ class DiskUtils
 
       #remount all
       command = "mount"
-      params = "#{disk.path} #{mount_point}"
+      params = "#{disk.path} '#{mount_point}'"
       mount = CommandExecutor.new command, params
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Mount executing"
       mount.execute
-      raise "Command execution error: #{mount.stderr.read}" if not mount.success?
+      raise "Command execution error: #{mount.stderr}" if not mount.success?
     end
 
     def format device, fstype
@@ -191,7 +226,7 @@ class DiskUtils
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Disk.kname = #{device.kname}, fstype = #{fstype} format params = #{params}"
       mkfs = CommandExecutor.new command, params
       mkfs.execute
-      raise "Command execution error: #{mkfs.stderr.read}" if not mkfs.success?
+      raise "Command execution error: #{mkfs.stderr}" if not mkfs.success?
     end
 
     #TODO: Need more testing
@@ -200,7 +235,7 @@ class DiskUtils
       params = "#{device.path} -s -a optimal unit MB mkpart #{partition_type} ext3 #{start_unit} -- #{end_unit}"
       parted = CommandExecutor.new command, params
       parted.execute
-      raise "Command execution error: #{parted.stderr.read}" if not parted.success?
+      raise "Command execution error: #{parted.stderr}" if not parted.success?
       probe_kernal device
     end
 
@@ -210,7 +245,7 @@ class DiskUtils
       params = "--script #{device.path} mklabel #{type}"
       parted = CommandExecutor.new command, params
       parted.execute
-      raise "Command execution error: #{parted.stderr.read}" if not parted.success?
+      raise "Command execution error: #{parted.stderr}" if not parted.success?
       probe_kernal device #inform the OS of partition table changes
     end
 
@@ -227,7 +262,7 @@ class DiskUtils
       params = "--script #{device_path} rm #{partition.partition_number}"
       parted = CommandExecutor.new command, params
       parted.execute
-      raise "Command execution error: #{parted.stderr.read}" if not parted.success?
+      raise "Command execution error: #{parted.stderr}" if not parted.success?
       probe_kernal device_path
     end
 
@@ -272,7 +307,7 @@ class DiskUtils
       blkid = CommandExecutor.new command, params
       DebugLogger.info "|#{self.class.name}|>|#{__method__}|:device = #{device.kname}, uuid = #{device.uuid}, params = #{params}"
       blkid.execute
-      raise "Command execution error:blkid error: #{blkid.stderr.read}" if not blkid.success?
+      raise "Command execution error:blkid error: #{blkid.stderr}" if not blkid.success?
       return blkid.result.lines.first.squish!
     end
 
@@ -284,8 +319,8 @@ class DiskUtils
         params = " info  --query=property --name=#{child_path}"
       end
       udevadm = CommandExecutor.new command, params
-      udevadm.execute false, false # None blocking and not debug mode
-      raise "Command execution error: #{udevadm.stderr.read}" if not udevadm.success?
+      udevadm.execute false # Not debug mode
+      raise "Command execution error: #{udevadm.stderr}" if not udevadm.success?
       udevadm.result.each_line do |line|
         line.squish!
         key = 'ID_PART_ENTRY_DISK'
@@ -299,7 +334,7 @@ class DiskUtils
       end
       lsblk = CommandExecutor.new command, params
       lsblk.execute
-      raise "Command execution error: #{lsblk.stderr.read}" if not lsblk.success?
+      raise "Command execution error: #{lsblk.stderr}" if not lsblk.success?
       lsblk.result.each_line do |line|
         data_hash = {}
         line.squish!
@@ -321,7 +356,7 @@ class DiskUtils
       multipath = CommandExecutor.new command, params
       if which command
         multipath.execute
-        raise "Command execution error: #{multipath.stderr}" if not multipath.success?
+        DebugLogger.error "|#{self.class.name}|>|#{__method__}|: Command execution error: #{multipath.stderr}" unless multipath.success?
       else
         return false
       end
@@ -333,14 +368,15 @@ class DiskUtils
       params = " info  --query=property --name=#{partition_path}"
       udevadm = CommandExecutor.new command, params
       udevadm.execute
-      raise "Command execution error: #{udevadm.stderr.read}" if not udevadm.success?
+      raise "Command execution error: #{udevadm.stderr}" if not udevadm.success?
       udevadm.result.each_line do |line|
         line.squish!
         key = 'ID_PART_ENTRY_NUMBER'
         _key, value = line.split '='
         return value.to_i if _key.eql? key
       end
-      raise "Can't find partition number for #{partition_path} partition"
+      DebugLogger.error "Can't find partition number for #{partition_path} partition"
+      return data_hash['kname'].match(/[0-9]*$/)[0].to_i
     end
 
     #Quick `open3` wrapper for check availability of a system command, shows the full path of (shell) commands.Wrapper for linux 'which' command
@@ -370,10 +406,10 @@ class DiskUtils
 
     def create_directory location
       command = "mkdir"
-      params = "-p -m 757 #{location}"
+      params = "-p -m 757 '#{location}'"
       mkdir = CommandExecutor.new command, params
       mkdir.execute
-      raise "Command execution error: #{mkdir.stderr.read}" if not mkdir.success?
+      raise "Command execution error: #{mkdir.stderr}" if not mkdir.success?
     end
 
     def systemctl_wrapper systemd_name, action
@@ -389,7 +425,7 @@ class DiskUtils
       end
       systemctl = CommandExecutor.new command, params
       systemctl.execute
-      raise "Command execution error: #{systemctl.stderr.read}" if not systemctl.success?
+      raise "Command execution error: #{systemctl.stderr}" if not systemctl.success?
       if action == 'show'
         _, description = systemctl.result.lines[0].squish!.split('=')
         _, active = systemctl.result.lines[1].squish!.split('=')

@@ -9,11 +9,16 @@ write_log()
   while read text
   do
 			if [ "$DEBUG_MODE" = true ]; then
-					LOGTIME=`date "+%Y-%m-%d %H:%M:%S"`
-      		LOG="dsw.log"
-    			touch $LOG
-        		if [ ! -f $LOG ]; then echo "ERROR!! Cannot create log file $LOG. Exiting."; exit 1; fi
-    			echo $LOGTIME": $text" | tee -a $LOG;
+				LOGTIME=`date "+%Y-%m-%d %H:%M:%S"`
+				LOG="dsw.log"
+				touch $LOG
+				if [ ! -f $LOG ]; then
+					message="ERROR!! Cannot create log file $LOG. Exiting.";
+					echo -e $message >&2;
+					echo  $message | write_log;
+					exit -1;
+				fi
+				echo $LOGTIME": $text" >> $LOG;
 			fi
   done
 }
@@ -23,13 +28,15 @@ executor(){
 	shift;
 	local params="$*";
 	echo  "Start executing $command with arguments = $params" | write_log;
-	exec sudo $command $params #>> dsw.log 2>&1;
+	eval sudo $command $params;
 }
 
 if [ $# -lt 2 ]
 	then
-		echo -e "An insufficient number of arguments(arguments)" | write_log ;
-		exit 1;
+		message="An insufficient number of arguments";
+		echo -e $message >&2;
+		echo  $message | write_log;
+		exit -1;
 fi
 
 command=$1;
@@ -38,23 +45,17 @@ arguments="$@";
 
 # Pattern matching Ref: http://goo.gl/JnXS5y
 case $command in
-parted)
+parted | mkfs.* | lsblk | fdisk | df | udevadm | e2label | fatlabel | ntfslabel | blkid |\
+	umount | mount | partprobe | echo | trigger | hdparm | multipath | mkdir | systemctl)
 	executor $command $arguments;
 ;;
-mkfs.*)
-	executor $command $arguments;
-;;
-lsblk)
-	executor $command $arguments;
-;;
-fdisk)
-	executor $command $arguments;
-;;
+
 *)
-	executor $command $arguments;
-	# if a command is not one we know, we exit with an error
-	echo "Sorry, command $command is not known";
-	exit 1;
+		# if a command is not one we know, we exit with an error
+		message="Sorry, command $command is not known";
+		echo -e $message >&2;
+		echo  $message | write_log;
+		exit -1;
 ;;
 esac
-exit 1;
+exit 0;

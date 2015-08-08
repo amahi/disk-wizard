@@ -58,8 +58,21 @@ class DiskWizardController < ApplicationController
   def confirmation
     option = params[:option]
     label = params[:label].blank? ? nil : params[:label]
+    if label.size > 11 and user_selections['fs_type'].eql?(3)
+      redirect_to disk_wizards_engine.manage_path, :flash => {:error => "label have to be less than 12 character in FAT32"}
+      return false
+    end
     self.user_selections = {option: option, label: label}
     @selected_disk = Device.find(user_selections['path'])
+  end
+
+  # Render progress page when click on apply button in 'confirmation' step
+  #  Implicitly send HTTP POST request to process_disk action to start processing the operations
+  # Expected key:values in @params:
+  #   :debug => Integer value(1) if debug mode has selected in fourth step(confirmation), else nil
+  def progress
+    debug_mode = params[:debug]
+    self.user_selections = {debug: debug_mode}
   end
 
   # An AJAX call is made to this action, from process.html.erb to start processing the queue
