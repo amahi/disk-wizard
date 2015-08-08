@@ -58,6 +58,10 @@ class DiskWizardController < ApplicationController
   def confirmation
     option = params[:option]
     label = params[:label].blank? ? nil : params[:label]
+    if label.size > 11 and user_selections['fs_type'].eql?(3)
+      redirect_to disk_wizards_engine.manage_path, :flash => {:error => "label have to be less than 12 character in FAT32"}
+      return false
+    end
     self.user_selections = {option: option, label: label}
     @selected_disk = Device.find(user_selections['path'])
   end
