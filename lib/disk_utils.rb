@@ -375,7 +375,8 @@ class DiskUtils
         _key, value = line.split '='
         return value.to_i if _key.eql? key
       end
-      raise "Can't find partition number for #{partition_path} partition"
+      DebugLogger.error "Can't find partition number for #{partition_path} partition"
+      return data_hash['kname'].match(/[0-9]*$/)[0].to_i
     end
 
     #Quick `open3` wrapper for check availability of a system command, shows the full path of (shell) commands.Wrapper for linux 'which' command
