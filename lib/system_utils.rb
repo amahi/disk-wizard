@@ -79,7 +79,7 @@ class SystemUtils
       multipath = CommandExecutor.new command, params
       if which command
         multipath.execute
-        raise "Command execution error: #{multipath.stderr}" if not multipath.success?
+        DebugLogger.error "|#{self.class.name}|>|#{__method__}|: Command execution error: #{multipath.stderr}" unless multipath.success?
       else
         return false
       end
