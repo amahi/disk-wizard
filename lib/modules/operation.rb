@@ -4,6 +4,7 @@ module Operation
   def delete
     #TODO: remove fstab entry if disk is permanently mounted
     #unmount if mountpoint
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Delete #{self.path}"
     DiskUtils.delete_partition self
   end
 
@@ -64,6 +65,22 @@ module Operation
       end
     end
     DiskUtils.clear_multipath
+  end
+
+  def delete_partition_job params_hash
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Params_hash #{params_hash}"
+    if self.instance_of? Partition
+      partition = self
+    else
+      self.partition.each do |part|
+        partition = part if part.path = params_hash['partition']
+      end
+      unless partition
+         partition = Device.find params_hash['partition']
+      end
+    end
+    partition.unmount if partition.mountpoint
+    partition.delete
   end
 
   def post_checks_job params_hash

@@ -96,11 +96,22 @@ class DiskWizardController < ApplicationController
       jobs_queue.enqueue({job_name: job_name, job_para: para})
     end
 
-    if user_selections['option']
-      para = {path: path, label: label}
-      job_name = :mount_job
-      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Job_name = #{job_name}, para = #{para}"
-      jobs_queue.enqueue({job_name: job_name, job_para: para})
+    unless user_selections['option'].blank?
+      option = user_selections['option'].first.to_i
+      if option.eql?(1)
+        para = {path: path, label: label}
+        job_name = :mount_job
+        jobs_queue.enqueue({job_name: job_name, job_para: para})
+      elsif option.eql?(2)
+        if user_selections['path'].blank?
+          redirect_to disk_wizards_engine.select_path, :flash => {:error => "You have to choose a partition"}
+          return false
+        end
+        para = {partition: user_selections['path']}
+        job_name = :delete_partition_job
+        DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Job_name = #{job_name}, para = #{para}"
+        jobs_queue.enqueue({job_name: job_name, job_para: para})
+      end
     end
 
     jobs_queue.enqueue({job_name: :post_checks_job, job_para: {path: path}})
