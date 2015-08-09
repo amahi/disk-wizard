@@ -99,8 +99,7 @@
             </tbody>
           </table>
         </div>
-  <% else
-       @user_selections["format"] %>
+  <% elsif @user_selections["format"] %>
       <div class="col-md-6 col-md-offset-3">
         <table class="table">
           <thead>
@@ -122,6 +121,26 @@
           </tr>
           </tbody>
         </table>
+  <% elsif user_selections['option'].eql?(2) %>
+    <!-- delete partition -->
+    <div class="col-md-6 col-md-offset-3">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Disk name</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th> <%= user_selections['path'] %></th>
+            <th class="alert-success"> Deleted</th>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <!-- Do nothing -->
   <% end %>
   <div class="col-md-12 well well-sm">
     <a href="/tab/disks/disk_wizards" class="btn btn-success"> Continue with another device </a>
