@@ -44,6 +44,18 @@
                     Mount
                     Location
                   </li>
+              <% elsif option == DiskWizardController::DELELTE_OPTION%>
+                <!-- delete partitioon -->
+                <li class="list-group-item text-left">
+                  <span class="badge alert-danger"> <span class="glyphicon glyphicon-ok"></span> </span> Delete Partition
+                </li>
+                <% if Partition.method_defined?(:label) and not @selected_disk.label.blank? %>
+                  <li class="list-group-item text-left">
+                    <span class="badge alert-info"><%= @selected_disk.label %></span>
+                    Partition Label
+                  </li>
+                <% end %>
+
               <% else %>
                   <li class="list-group-item text-left">
                     <span class="badge alert-warning"> [Experimental] </span> Add it to shared stroage pool

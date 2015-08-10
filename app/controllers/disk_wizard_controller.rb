@@ -4,6 +4,7 @@ class DiskWizardController < ApplicationController
   before_filter :clear_mode, except: [:process_disk]
 
   layout 'wizard'
+  DELELTE_OPTION = '2'
 
   # @return [Device Array] : Return array of Device objects, which are mounted(permanent or temporary) in the HDA.
   # Render the first step of the Disk-Wizard(DW)
