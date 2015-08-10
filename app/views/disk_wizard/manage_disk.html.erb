@@ -23,7 +23,15 @@
         </li>
         <li class="list-group-item">
           <div class="checkbox">
-            <%= check_box_tag('option[]', 1, !!((user_selections['option'].include? '1') rescue false), class: 'mount_check') %>
+            <%= radio_button_tag('option[]', "", !!((user_selections['option'].include? '') rescue false))%>
+              <div class="alert alert-info">
+                <label > Nothing </label>
+              </div>
+          </div>
+        </li>
+        <li class="list-group-item">
+          <div class="checkbox">
+            <%= radio_button_tag('option[]', "1", !!((user_selections['option'].include? '1') rescue false), class: 'mount_check') %>
               <div class="alert alert-info">
                 <label for="option_"> Mount this drive automatically.</label>
                 <div style="<%= !!((user_selections['option'].include? '1') rescue false) ? nil : 'display: none' %>" id="label_input" class="input-group input-group-sm">
@@ -33,7 +41,16 @@
               </div>
           </div>
         </li>
-
+        <% if user_selections['format'].blank?%>
+          <li class="list-group-item">
+            <div class="checkbox">
+              <%= radio_button_tag('option[]', "2", !!((user_selections['option'].include? '2') rescue false)) %>
+                <div class="alert alert-info">
+                  <label > Delete this partition</label>
+                </div>
+            </div>
+          </li>
+        <% end %>
       </ul>
     </div>
   </div>
