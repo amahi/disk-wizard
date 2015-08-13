@@ -122,6 +122,12 @@ class Device #< ActiveRecord::Base
   end
 
   class << self
+    def find_with_unallocated device_path
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:find = #{device_path}"
+      device = DiskUtils.find_with_unallocated device_path
+      Device.new device
+    end
+
     def all
       # return array of Disk objects
       devices= []

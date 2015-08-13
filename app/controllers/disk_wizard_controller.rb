@@ -27,9 +27,9 @@ class DiskWizardController < ApplicationController
     end
     if request.post?
       self.user_selections = {path: device}
-      @selected_disk = Device.find(device)
+      @selected_disk = Device.find_with_unallocated(device)
     else
-      @selected_disk = Device.find(user_selections['path'])
+      @selected_disk = Device.find_with_unallocated(user_selections['path'])
     end
   end
 

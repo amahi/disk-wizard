@@ -90,6 +90,38 @@ class DiskUtils
       end
     end
 
+    # Return information about partitions and unallocated space in specific device
+    # work as all_devices but return unallocated space also
+    def find_with_unallocated device_path
+      device = DiskUtils.all_devices device_path
+      device["partitions"] = []
+      result = device_spaces_in_MB(device_path)
+      # get with sectors
+      sectors = device_spaces_in_sectors(device_path).lines
+      # parsing the result
+      result.each_line.with_index do |line, idx|
+        #skip the first two lines
+        next if idx < 2
+        line = line.split(":")
+        partition = {}
+        if(line[4] == "free;\n")
+          # unallocated partition
+          partition["size"] = (line[3][0..-3].to_f * 1024 * 1024).to_i
+          partition["allocated"] = false
+          partition["start_sector"] = sectors[idx].split(":")[1][0..-2]
+          partition["end_sector"] = sectors[idx].split(":")[2][0..-2]
+          partition["identifier"] = "unallocated:#{idx}"
+        else
+          partition = DiskUtils.all_devices "#{device_path}#{line[0]}"
+          partition["allocated"] = true
+          partition["start_sector"] = sectors[idx].split(":")[1][0..-2]
+          partition["end_sector"] = sectors[idx].split(":")[2][0..-2]
+        end
+        device["partitions"].push partition
+      end
+      return device
+    end
+
     # TODO: move to private methods section
     def partition_type_hex kname
       # Return Hex value of the partition type.Reliable compared to pure tex comparison.
@@ -434,6 +466,25 @@ class DiskUtils
         return {description: description, pid: pid.to_i, active_state: active, state: state}
       end
     end
+
+    def device_spaces_in_MB device_path
+      command = "parted"
+      params = "#{device_path} -m unit MB print free"
+      parted = CommandExecutor.new command, params
+      parted.execute
+      raise "Command execution error: #{parted.stderr}" if not parted.success?
+      result = parted.result
+    end
+
+    def device_spaces_in_sectors device_path
+      command = "parted"
+      params = "#{device_path} -m unit s print free"
+      parted = CommandExecutor.new command, params
+      parted.execute
+      raise "Command execution error: #{parted.stderr}" if not parted.success?
+      sectors = parted.result
+    end
+
   end
 end
 
