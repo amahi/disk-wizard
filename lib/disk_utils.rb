@@ -107,13 +107,13 @@ class DiskUtils
         if(line[4] == "free;\n")
           # unallocated partition
           partition["size"] = (line[3][0..-3].to_f * 1024 * 1024).to_i
-          partition["allocated"] = false
+          partition["free_space"] = true
           partition["start_sector"] = sectors[idx].split(":")[1][0..-2]
           partition["end_sector"] = sectors[idx].split(":")[2][0..-2]
-          partition["identifier"] = "unallocated:#{idx}"
+          partition["identifier"] = "#{idx}"
         else
           partition = DiskUtils.all_devices "#{device_path}#{line[0]}"
-          partition["allocated"] = true
+          partition["allocated"] = false
           partition["start_sector"] = sectors[idx].split(":")[1][0..-2]
           partition["end_sector"] = sectors[idx].split(":")[2][0..-2]
         end
@@ -262,9 +262,9 @@ class DiskUtils
     end
 
     #TODO: Need more testing
-    def create_partition device, partition_type = 'primary', start_unit, end_unit
+    def create_partition device, partition_type = 'primary', start_sector, end_sector
       command = 'parted'
-      params = "#{device.path} -s -a optimal unit MB mkpart #{partition_type} ext3 #{start_unit} -- #{end_unit}"
+      params = "#{device.path} -s -a optimal unit s mkpart #{partition_type} ext3 #{start_sector} -- #{end_sector}"
       parted = CommandExecutor.new command, params
       parted.execute
       raise "Command execution error: #{parted.stderr}" if not parted.success?

@@ -71,11 +71,12 @@ class Device #< ActiveRecord::Base
     new_partition.format fstype and reload
   end
 
-  #TODO: extend to create new partitions on unallocated spaces
   def create_partition(size = nil, type = Partition.PartitionType[:TYPE_PRIMARY])
-    DiskUtils.create_partition self, size[:start_block], size[:end_block]
-    partitions = Device.find(self).partitions
-    return partitions.last
+    old_partitions = Device.find(self.path).partitions
+    DiskUtils.create_partition self, size[:start_sector], size[:end_sector]
+    new_partitions = Device.find(self.path).partitions
+    # Return the newest partitions that is just add to the device
+    return  new_partitions.reject {|part| old_partitions.include? part}.first
   end
 
   # TODO: Take partition table type as an input parameter , set default to MSDOS

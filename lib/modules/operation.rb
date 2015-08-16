@@ -67,6 +67,16 @@ module Operation
     DiskUtils.clear_multipath
   end
 
+  def create_new_partition_job params_hash
+    DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Params_hash #{params_hash}"
+    device = Device.find_with_unallocated params_hash[:path]
+    partition = device.partitions.select { |part| part.identifier == params_hash[:identifier] }.first
+    partition_size =  {start_sector: partition.start_sector, end_sector: partition.end_sector}
+    partition = device.create_partition partition_size
+    filesystem = {fs_type: params_hash[:fs_type].to_i || 3 }
+    partition.format_job filesystem
+  end
+
   def delete_partition_job params_hash
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Params_hash #{params_hash}"
     if self.instance_of? Partition
