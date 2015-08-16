@@ -116,6 +116,11 @@ class Partition
     return Device.find "/dev/#{parent_kname}"
   end
 
+  # Change the default compare operator to be able to compare with object correctly
+  def ==(other_part)
+    self.uuid == other_part.uuid and self.kname == other_part.kname and self.size == other_part.size
+  end
+
   private
 
 end
