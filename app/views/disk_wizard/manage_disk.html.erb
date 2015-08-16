@@ -10,19 +10,34 @@
             }
         });
     });
+    $(function () {
+        $('.mount_check_creation').change(function () {
+            var $this = $(this);
+            // $this will contain a reference to the checkbox
+            if ($this.is(':checked')) {
+                $('#label_input_creation').slideDown();
+            } else {
+                $('#label_input_creation').slideUp();
+            }
+        });
+    });
   $( document ).ready( function () {
     if ($('.create_new_partition').is(':checked')) {
         $('#fs_selector').slideDown();
+        $('#mount_after_creation').slideDown();
     } else {
         $('#fs_selector').slideUp();
+        $('#mount_after_creation').slideUp();
     }
   });
   $(function () {
     $('.create_new_partition, .nothing').change(function () {
         if ($('.create_new_partition').is(':checked')) {
             $('#fs_selector').slideDown();
+            $('#mount_after_creation').slideDown();
         } else {
             $('#fs_selector').slideUp();
+            $('#mount_after_creation').slideUp();
         }
     });
   });
@@ -74,20 +89,35 @@
               <%= radio_button_tag('option[]', "3", !!((user_selections['option'].include? '2') rescue false),class: "create_new_partition") %>
                 <div class="alert alert-info">
                   <label > Create new partition</label>
-                </div>
-            </div>
-            <div class="row">
-              <div id="fs_selector" class="col-md-10 col-md-offset-1" style="display: none;">
-                <div class="well">
-                  <ul class="list-group">
-                    <li class="list-group-item list-group-item-success">
-                      Please select a file system type
-                    </li>
-                    <%= select_tag :fs_type, options_for_select([["Ext4", 0], ["Ext3", 1], ["NTFS", 2], ["FAT32", 3]], 0), class: "form-control" %>
+                  <div class="row">
+                    <div id="fs_selector" class="col-md-10 col-md-offset-1" style="display: none;">
+                      <div class="well">
+                        <ul class="list-group">
+                          <li class="list-group-item list-group-item-success">
+                            Please select a file system type
+                          </li>
+                          <%= select_tag :fs_type, options_for_select([["Ext4", 0], ["Ext3", 1], ["NTFS", 2], ["FAT32", 3]], 0), class: "form-control" %>
 
-                  </ul>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div id="mount_after_creation" class="col-md-10 col-md-offset-1" style="display: none;">
+                      <div class="checkbox">
+                        <%= check_box_tag('option[]', "1", !!((user_selections['option'].include? '1') rescue false), class: 'mount_check_creation') %>
+                          <div class="alert alert-info">
+                            <label for="option_"> Mount this drive automatically.</label>
+                            <div style="<%= !!((user_selections['option'].include? '1') rescue false) ? nil : 'display: none' %>" id="label_input_creation" class="input-group input-group-sm">
+                              <span class="input-group-addon">Enter a label</span>
+                              <input style="margin: auto;" type="text" name="label" id="label" class="form-control" placeholder="Label" value="<%= user_selections['label'] || nil %>">
+                            </div>
+                          </div>
+                      </div>
+                    </div>
+
+                  </div>
+
                 </div>
-              </div>
             </div>
           </li>
         <% end %>

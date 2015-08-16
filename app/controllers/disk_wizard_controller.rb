@@ -128,15 +128,25 @@ class DiskWizardController < ApplicationController
         job_name = :delete_partition_job
         DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Job_name = #{job_name}, para = #{para}"
         jobs_queue.enqueue({job_name: job_name, job_para: para})
+      end
 
-      elsif option.include?(CREATE_OPTION)
+      if option.include?(CREATE_OPTION)
         para = {identifier: user_selections['identifier'], path: user_selections['disk'], fs_type: user_selections['fs_type']}
         job_name = :create_new_partition_job
         DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Job_name = #{job_name}, para = #{para}"
         jobs_queue.enqueue({job_name: job_name, job_para: para})
+      end
 
-      elsif option.include?(MOUNT_OPTION)
-        para = {path: path, label: label}
+      if option.include?(MOUNT_OPTION)
+        # mount new partition
+        if option.include?(CREATE_OPTION)
+          # send start sector as to be able to know which partition to mount
+          device = Device.find_with_unallocated(user_selections['disk'])
+          @selected_disk = (device.partitions.select{|part| part.identifier == user_selections['identifier'] }).first
+          start_sector = @selected_disk.start_sector
+        end
+
+        para = {path: path, label: label, start_sector: start_sector}
         job_name = :mount_job
         jobs_queue.enqueue({job_name: job_name, job_para: para})
       end
