@@ -10,6 +10,22 @@
             }
         });
     });
+  $( document ).ready( function () {
+    if ($('.create_new_partition').is(':checked')) {
+        $('#fs_selector').slideDown();
+    } else {
+        $('#fs_selector').slideUp();
+    }
+  });
+  $(function () {
+    $('.create_new_partition, .nothing').change(function () {
+        if ($('.create_new_partition').is(':checked')) {
+            $('#fs_selector').slideDown();
+        } else {
+            $('#fs_selector').slideUp();
+        }
+    });
+  });
 </script>
 <div class="panel-body">
   <%= form_tag(disk_wizards_engine.confirmation_path, {method: "POST", id: "options"}) %>
@@ -23,7 +39,7 @@
         </li>
         <li class="list-group-item">
           <div class="checkbox">
-            <%= radio_button_tag('option[]', "", !!((user_selections['option'].include? '') rescue false))%>
+            <%= radio_button_tag('option[]', "", !!((user_selections['option'].include? '') rescue false), class: "nothing")%>
               <div class="alert alert-info">
                 <label > Nothing </label>
               </div>
@@ -55,10 +71,23 @@
         <% else %>
           <li class="list-group-item">
             <div class="checkbox">
-              <%= radio_button_tag('option[]', "3", !!((user_selections['option'].include? '2') rescue false)) %>
+              <%= radio_button_tag('option[]', "3", !!((user_selections['option'].include? '2') rescue false),class: "create_new_partition") %>
                 <div class="alert alert-info">
-                  <label > create new partition</label>
+                  <label > Create new partition</label>
                 </div>
+            </div>
+            <div class="row">
+              <div id="fs_selector" class="col-md-10 col-md-offset-1" style="display: none;">
+                <div class="well">
+                  <ul class="list-group">
+                    <li class="list-group-item list-group-item-success">
+                      Please select a file system type
+                    </li>
+                    <%= select_tag :fs_type, options_for_select([["Ext4", 0], ["Ext3", 1], ["NTFS", 2], ["FAT32", 3]], 0), class: "form-control" %>
+
+                  </ul>
+                </div>
+              </div>
             </div>
           </li>
         <% end %>

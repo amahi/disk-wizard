@@ -25,9 +25,11 @@
         <br/>
         <br/>
         <ul class="list-group">
-          <li class="list-group-item list-group-item-info text-center">
-            <%= @selected_disk.kind_of?(Device) ? @selected_disk.model : @selected_disk.device.model %>
-          </li>
+          <% if @selected_disk.is_a? Device or not @selected_disk.free_space %>
+            <li class="list-group-item list-group-item-info text-center">
+              <%= @selected_disk.class == (Device) ? @selected_disk.model : @selected_disk.device.model %>
+            </li>
+          <% end %>
           <% if user_selections['format'] %>
               <li class="list-group-item text-left">
                 <span class="badge alert-danger"> <span class="glyphicon glyphicon-ok"></span> </span> Format
@@ -38,13 +40,13 @@
               </li>
           <% end %>
           <% user_selections['option'].try(:each) do |option| %>
-              <% if option == '1' %>
+              <% if option == DiskWizardController::MOUNT_OPTION %>
                   <li class="list-group-item text-left">
                     <span class="badge alert-info"> /var/hda/files/drives/<%= user_selections['label'] || @selected_disk.kname %> </span>
                     Mount
                     Location
                   </li>
-              <% elsif option == DiskWizardController::DELELTE_OPTION%>
+              <% elsif option == DiskWizardController::DELETE_OPTION%>
                 <!-- delete partitioon -->
                 <li class="list-group-item text-left">
                   <span class="badge alert-danger"> <span class="glyphicon glyphicon-ok"></span> </span> Delete Partition
@@ -55,16 +57,29 @@
                     Partition Label
                   </li>
                 <% end %>
-
+              <% elsif option == DiskWizardController::CREATE_OPTION%>
+                <!-- Create new parttion -->
+                <li class="list-group-item text-left">
+                  <span class="badge alert-info"> <span class="glyphicon glyphicon-ok"></span> </span> create Partition
+                </li>
+                <li class="list-group-item text-left">
+                  <span class="badge alert-info"><%= number_to_human_size @selected_disk.size %></span>
+                  Partition Size
+                </li>
+              <% elsif option == DiskWizardController::NOTHING_OPTION %>
+                <!-- Do noting -->
               <% else %>
                   <li class="list-group-item text-left">
                     <span class="badge alert-warning"> [Experimental] </span> Add it to shared stroage pool
                   </li>
               <% end %>
           <% end %>
-          <li class="list-group-item text-left">
-            <span class="badge alert-info"><%= @selected_disk.path %> </span> System name
-          </li>
+
+          <% if @selected_disk.is_a? Device or not @selected_disk.free_space %>
+            <li class="list-group-item text-left">
+              <span class="badge alert-info"><%= @selected_disk.path %> </span> System name
+            </li>
+          <% end %>
           <li class="list-group-item text-right">
             <a style="float: left" class="btn btn-default" href=<%= defined?(disk_wizards_engine) ? disk_wizards_engine.manage_path : manage_path %>>
               <span class="glyphicon glyphicon-arrow-left"></span> Back</a>
