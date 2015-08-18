@@ -4,7 +4,11 @@ class DiskWizardController < ApplicationController
   before_filter :clear_mode, except: [:process_disk]
 
   layout 'wizard'
-  DELELTE_OPTION = '2'
+
+  NOTHING_OPTION = ''
+  MOUNT_OPTION = '1'
+  DELETE_OPTION = '2'
+  CREATE_OPTION = '3'
 
   # @return [Device Array] : Return array of Device objects, which are mounted(permanent or temporary) in the HDA.
   # Render the first step of the Disk-Wizard(DW)
@@ -26,10 +30,10 @@ class DiskWizardController < ApplicationController
       return false
     end
     if request.post?
-      self.user_selections = {path: device}
-      @selected_disk = Device.find(device)
+      self.user_selections = {path: device, disk: device}
+      @selected_disk = Device.find_with_unallocated(device)
     else
-      @selected_disk = Device.find(user_selections['path'])
+      @selected_disk = Device.find_with_unallocated(user_selections['path'])
     end
   end
 
@@ -57,6 +61,11 @@ class DiskWizardController < ApplicationController
   #     TODO: Improve structure of storing 'options' information, instead of simple number mapping
   #     TODO: i.e {mount: {label: 'label_name', mount_point: 'mount_point_name'} ,option2: {data_hash}}
   def confirmation
+    unless params[:fs_type].blank?
+     # create new partition with this file system
+     fs_type = params[:fs_type].to_i
+     self.user_selections = {fs_type: fs_type}
+    end
     option = params[:option]
     label = params[:label].blank? ? nil : params[:label]
     if not( label.blank? ) and label.size > 11 and user_selections['fs_type'].eql?(3)
@@ -64,7 +73,13 @@ class DiskWizardController < ApplicationController
       return false
     end
     self.user_selections = {option: option, label: label}
-    @selected_disk = Device.find(user_selections['path'])
+    if user_selections['path'].match(/^\/dev/).blank?
+      # is a unallocated space
+      device = Device.find_with_unallocated(user_selections['disk'])
+      @selected_disk = (device.partitions.select{|part| part.identifier == user_selections['path'] }).first
+    else
+      @selected_disk = Device.find(user_selections['path'])
+    end
   end
 
   # Render progress page when click on apply button in 'confirmation' step
@@ -79,6 +94,11 @@ class DiskWizardController < ApplicationController
   # An AJAX call is made to this action, from process.html.erb to start processing the queue
   # Create operation queue according to user selections(user_selections), and enqueue operations
   def process_disk
+    if user_selections['option'].include?(CREATE_OPTION)
+      identifier = user_selections['path']
+      disk_path = user_selections['disk']
+      self.user_selections = {identifier: identifier, path: disk_path}
+    end
     path = user_selections['path']
     label = user_selections['label']
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Selected disk/partition = #{path}"
@@ -98,12 +118,8 @@ class DiskWizardController < ApplicationController
     end
 
     unless user_selections['option'].blank?
-      option = user_selections['option'].first.to_i
-      if option.eql?(1)
-        para = {path: path, label: label}
-        job_name = :mount_job
-        jobs_queue.enqueue({job_name: job_name, job_para: para})
-      elsif option.eql?(2)
+      option = user_selections['option']
+      if option.include?(DELETE_OPTION)
         if user_selections['path'].blank?
           redirect_to disk_wizards_engine.select_path, :flash => {:error => "You have to choose a partition"}
           return false
@@ -111,6 +127,27 @@ class DiskWizardController < ApplicationController
         para = {partition: user_selections['path']}
         job_name = :delete_partition_job
         DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Job_name = #{job_name}, para = #{para}"
+        jobs_queue.enqueue({job_name: job_name, job_para: para})
+      end
+
+      if option.include?(CREATE_OPTION)
+        para = {identifier: user_selections['identifier'], path: user_selections['disk'], fs_type: user_selections['fs_type']}
+        job_name = :create_new_partition_job
+        DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Job_name = #{job_name}, para = #{para}"
+        jobs_queue.enqueue({job_name: job_name, job_para: para})
+      end
+
+      if option.include?(MOUNT_OPTION)
+        # mount new partition
+        if option.include?(CREATE_OPTION)
+          # send start sector as to be able to know which partition to mount
+          device = Device.find_with_unallocated(user_selections['disk'])
+          @selected_disk = (device.partitions.select{|part| part.identifier == user_selections['identifier'] }).first
+          start_sector = @selected_disk.start_sector
+        end
+
+        para = {path: path, label: label, start_sector: start_sector}
+        job_name = :mount_job
         jobs_queue.enqueue({job_name: job_name, job_para: para})
       end
     end

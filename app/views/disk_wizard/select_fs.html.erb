@@ -204,21 +204,31 @@
 
       <%
          unless device.partitions.blank?
-           for partition in device.partitions %>
-              <tr style="position: relative;cursor: pointer;" path="<%= partition.path %>" data-toggle="context" data-target="#contextMenu" class=<%= !!(user_selections['path'] == partition.path rescue false) ? "info context" : "context" %>>
-                <td title="Mount point"> <%= partition.mountpoint || "No mount point" %> </td>
-                <td title="Disk name"> <%= partition.label %> </td>
-                <td>
-                  <% if partition.fstype.nil? %> <span class='glyphicon glyphicon-warning-sign'></span> Unknown
-                  <% else %>
-                      <%= partition.fstype %>
-                  <% end %> </td>
+           device.partitions.each.with_index do |partition, idx| %>
+              <% unless partition.free_space %>
+                <tr style="position: relative;cursor: pointer;" path="<%= partition.path %>" data-toggle="context" data-target="#contextMenu" class=<%= !!(user_selections['path'] == partition.path rescue false) ? "info context" : "context" %>>
+                  <td title="Mount point"> <%= partition.mountpoint || "No mount point" %> </td>
+                  <td title="Disk name"> <%= partition.label %> </td>
+                  <td>
+                    <% if partition.fstype.nil? %> <span class='glyphicon glyphicon-warning-sign'></span> Unknown
+                    <% else %>
+                        <%= partition.fstype %>
+                    <% end %> </td>
 
-                <td title="Total size"> <%= number_to_human_size partition.size %> </td>
-                <td>
-                  <label> <%= check_box_tag(:format, 1, !!(user_selections['format'] && (user_selections['path'] == partition.path) rescue false), class: 'format') %> </label>
-                </td>
-              </tr>
+                  <td title="Total size"> <%= number_to_human_size partition.size %> </td>
+                  <td>
+                    <label> <%= check_box_tag(:format, 1, !!(user_selections['format'] && (user_selections['path'] == partition.path) rescue false), class: 'format') %> </label>
+                  </td>
+                </tr>
+              <% else %>
+                <tr style="position: relative;cursor: pointer;" data-toggle="context" data-target="#contextMenu" path="<%= partition.identifier %>" class=<%= !!(user_selections['path'] == partition.path rescue false) ? "info context" : "context" %>>
+                  <td> <span class="text-info"> Free space </span></td>
+                  <td> <span class="text-info"> Free space </span></td>
+                  <td> <span class="text-info"> Free space </span></td>
+                  <td title="Total size"> <%= number_to_human_size partition.size %> </td>
+                  <td></td>
+                </tr>
+              <% end %>
           <% end %>
       <% end %>
       <tr style="position: relative;cursor: pointer;" class=<%= !!(user_selections['format'] && (user_selections['partition'] == device.path) rescue false) ? "danger" : "warning" %> path="<%= device.path %>" >

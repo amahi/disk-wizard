@@ -3,8 +3,10 @@
 class Device #< ActiveRecord::Base
   include Operation
 
+  MEGA_BYTE = 1024 *1024
+  TERA_BYTE = 1024 *1024 * 1024 *1024
   # 2 Tera byte is the edge between MBR and GPT
-  GPT_EDGE = 2 * 1024 * 1024 * 1024 * 1024
+  GPT_EDGE = 2 * TERA_BYTE
 
   # Device attributes:
   #   vendor : Device vendor i.e. Western Digital Technologies
@@ -49,6 +51,11 @@ class Device #< ActiveRecord::Base
     return DiskUtils.partition_table self
   end
 
+  # @return integer the number of partition this device have
+  def partition_count
+    return self.partitions.count
+  end
+
   # @return [boolean] check the value of the @rm and return a boolean, true if the device is a removable device else false
   def removable?
     return self.rm.eql? 1
@@ -63,7 +70,8 @@ class Device #< ActiveRecord::Base
     DebugLogger.info "class = #{self.class.name}, method = #{__method__}"
     delete_all_partitions unless partitions.blank?
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Creating partition #{self.kname}"
-    DiskUtils.create_partition self, 1, -1
+    start_sector = megabyte_to_sectors(1)
+    DiskUtils.create_partition self, start_sector, "100%"
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Find partition #{@kname}"
     self.reload
     new_partition = self.partitions.last # Assuming new partition to be at the last index
@@ -71,11 +79,12 @@ class Device #< ActiveRecord::Base
     new_partition.format fstype and reload
   end
 
-  #TODO: extend to create new partitions on unallocated spaces
   def create_partition(size = nil, type = Partition.PartitionType[:TYPE_PRIMARY])
-    DiskUtils.create_partition self, size[:start_block], size[:end_block]
-    partitions = Device.find(self).partitions
-    return partitions.last
+    old_partitions = Device.find(self.path).partitions
+    DiskUtils.create_partition self, size[:start_sector], size[:end_sector]
+    new_partitions = Device.find(self.path).partitions
+    # Return the newest partitions that is just add to the device
+    return  new_partitions.reject {|part| old_partitions.include? part}.first
   end
 
   # TODO: Take partition table type as an input parameter , set default to MSDOS
@@ -110,7 +119,13 @@ class Device #< ActiveRecord::Base
     Device.progress = 60
     kname = @kname
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:New partition Label #{params_hash[:label]}"
-    new_partition = self.partitions.last
+    unless params_hash[:start_sector].blank?
+      # mount new partition
+     device =  Device.find_with_unallocated "/dev/#{self.kname}"
+     new_partition = device.partitions.select{|part| part.start_sector.to_i == params_hash[:start_sector].to_i}.first
+    else
+      new_partition = self.partitions.last
+    end
     new_partition.mount params_hash[:label]
     Device.progress = 80
   end
@@ -121,7 +136,18 @@ class Device #< ActiveRecord::Base
     end
   end
 
+  def megabyte_to_sectors number_of_megas
+    sector_size = DiskUtils.get_sector_size self.kname
+    return (MEGA_BYTE * number_of_megas) / sector_size.to_i
+  end
+
   class << self
+    def find_with_unallocated device_path
+      DebugLogger.info "|#{self.class.name}|>|#{__method__}|:find = #{device_path}"
+      device = DiskUtils.find_with_unallocated device_path
+      Device.new device
+    end
+
     def all
       # return array of Disk objects
       devices= []

@@ -25,8 +25,9 @@ class Partition
   # kname: Kernal name, name given by linux kernal (i.e. sda1, hda1 etc..)
   # uuid: Filesystem UUID of the partition,If partition do not have a valid filesystem type or partition is corrupted this attribute will be missing
   # logical: Boolean attribute, weather a partition is a logical(Within extended partition) or not.(Only applicable for MBR/DOS partition table)
+  # free_space: boolean attribue, true if the object is a unallocated space
   # pkname: kname(kernal name) of the parent disk,Disk which the partition belongs to. ALERT: No pkname for /dev/mapper/{multipath device partitions}| /dev/dm-N use Partition.device.kname
-  attr_reader :fstype, :label, :size, :mountpoint, :used, :available, :type, :uuid, :logical
+  attr_reader :fstype, :label, :size, :mountpoint, :used, :available, :type, :uuid, :logical, :start_sector, :end_sector, :identifier, :free_space
   attr_accessor :kname
 
   # PartitionType Globally accessible Hash constant holds the type of partitions which are supported by disk-wizard
@@ -114,6 +115,11 @@ class Partition
   def device
     parent_kname = DiskUtils.get_parent self.path
     return Device.find "/dev/#{parent_kname}"
+  end
+
+  # Change the default compare operator to be able to compare with object correctly
+  def ==(other_part)
+    self.uuid == other_part.uuid and self.kname == other_part.kname and self.size == other_part.size
   end
 
   private

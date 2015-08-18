@@ -121,7 +121,8 @@
           </tr>
           </tbody>
         </table>
-  <% elsif user_selections['option'].eql?(2) %>
+      </div>
+  <% elsif user_selections['option'].include? DiskWizardController::DELETE_OPTION %>
     <!-- delete partition -->
     <div class="col-md-6 col-md-offset-3">
       <table class="table">
@@ -133,9 +134,34 @@
         </thead>
         <tbody>
           <tr>
-            <th> <%= user_selections['path'] %></th>
-            <th class="alert-success"> Deleted</th>
+            <td> <%= user_selections['path'] %></th>
+            <td class="alert-success"> Deleted</th>
           </tr>
+        </tbody>
+      </table>
+    </div>
+  <% elsif user_selections['option'].include? DiskWizardController::CREATE_OPTION %>
+    <div class="col-md-6 col-md-offset-3">
+      <table class="table">
+        <thead>
+        <tr>
+          <th>Disk name</th>
+          <th>Partition</th>
+          <th>filesystem type</th>
+          <% if @user_selections["option"].include? DiskWizardController::MOUNT_OPTION %>
+              <th>Mount point</th>
+          <% end %>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td><%= @user_selections['disk'] %></td>
+          <td class="alert-success"> Created</th>
+          <td><%= Partition.FilesystemType.key(@user_selections['fs_type'].to_i) %></td>
+          <% if @user_selections['option'].include? DiskWizardController::MOUNT_OPTION %>
+              <td>/var/hda/disks/<%= @user_selections['label'] %></td>
+          <% end %>
+        </tr>
         </tbody>
       </table>
     </div>
