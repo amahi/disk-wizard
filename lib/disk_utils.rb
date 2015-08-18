@@ -424,6 +424,11 @@ class DiskUtils
       end
     end
 
+    def get_sector_size kname
+      file = File.read("/sys/block/#{kname}/queue/hw_sector_size")
+      return file.squish
+    end
+
 
     private
 

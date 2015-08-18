@@ -3,8 +3,10 @@
 class Device #< ActiveRecord::Base
   include Operation
 
+  MEGA_BYTE = 1024 *1024
+  TERA_BYTE = 1024 *1024 * 1024 *1024
   # 2 Tera byte is the edge between MBR and GPT
-  GPT_EDGE = 2 * 1024 * 1024 * 1024 * 1024
+  GPT_EDGE = 2 * TERA_BYTE
 
   # Device attributes:
   #   vendor : Device vendor i.e. Western Digital Technologies
@@ -68,7 +70,8 @@ class Device #< ActiveRecord::Base
     DebugLogger.info "class = #{self.class.name}, method = #{__method__}"
     delete_all_partitions unless partitions.blank?
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Creating partition #{self.kname}"
-    DiskUtils.create_partition self, 1, -1
+    start_sector = megabyte_to_sectors(1)
+    DiskUtils.create_partition self, start_sector, "100%"
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Find partition #{@kname}"
     self.reload
     new_partition = self.partitions.last # Assuming new partition to be at the last index
@@ -131,6 +134,11 @@ class Device #< ActiveRecord::Base
     for partition in self.partitions
       partition.delete
     end
+  end
+
+  def megabyte_to_sectors number_of_megas
+    sector_size = DiskUtils.get_sector_size self.kname
+    return (MEGA_BYTE * number_of_megas) / sector_size.to_i
   end
 
   class << self
