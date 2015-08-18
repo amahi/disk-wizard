@@ -49,6 +49,11 @@ class Device #< ActiveRecord::Base
     return DiskUtils.partition_table self
   end
 
+  # @return integer the number of partition this device have
+  def partition_count
+    return self.partitions.count
+  end
+
   # @return [boolean] check the value of the @rm and return a boolean, true if the device is a removable device else false
   def removable?
     return self.rm.eql? 1

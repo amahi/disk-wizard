@@ -68,6 +68,9 @@ module Operation
   end
 
   def create_new_partition_job params_hash
+    device = Device.find params_hash[:path]
+    raise "We don't support GPT yet" if device.partition_table != "msdos"
+    raise "We don't support extended partitions yet, The number of partitions >= 3" if device.partition_count > 2
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Params_hash #{params_hash}"
     device = Device.find_with_unallocated params_hash[:path]
     partition = device.partitions.select { |part| part.identifier == params_hash[:identifier] }.first
