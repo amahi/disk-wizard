@@ -48,7 +48,12 @@ class Device #< ActiveRecord::Base
   #
   # @return [String] Partition table type of the device(i.e. MSDOS, GPT, MAC, BSD etc.), if no partition table found return nil
   def partition_table
-    return DiskUtils.partition_table self
+    table = DiskUtils.partition_table self
+    if table == 'unknown' or table == 'false' or not table
+      return false
+    else
+      return table
+    end
   end
 
   # @return integer the number of partition this device have
@@ -99,7 +104,7 @@ class Device #< ActiveRecord::Base
     #TODO: check the disk size and pass the relevent partition table type (i.e. if device size >= 3TB create GPT table else MSDOS(MBR))
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:partition_table is '#{partition_table}'"
     table = partition_table
-    if table.eql? "unknown" or table.eql? nil
+    if table.blank?
       if self.size.to_i > GPT_EDGE
         table_type = 'gpt'
       else
