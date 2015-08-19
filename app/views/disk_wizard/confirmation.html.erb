@@ -63,7 +63,7 @@
                   <span class="badge alert-info"> <span class="glyphicon glyphicon-ok"></span> </span> create Partition
                 </li>
                 <li class="list-group-item text-left">
-                  <span class="badge alert-info"><%= number_to_human_size @selected_disk.size %></span>
+                  <span class="badge alert-info"><%= number_to_human_size @selected_disk.size/user_selections['partition_divider'] %></span>
                   Partition Size
                 </li>
               <% elsif option == DiskWizardController::NOTHING_OPTION %>

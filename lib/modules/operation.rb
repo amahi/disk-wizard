@@ -72,9 +72,15 @@ module Operation
     raise "We don't support GPT yet" if device.partition_table != "msdos"
     raise "We don't support extended partitions yet, The number of partitions >= 3" if device.partition_count > 2
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Params_hash #{params_hash}"
+
     device = Device.find_with_unallocated params_hash[:path]
     partition = device.partitions.select { |part| part.identifier == params_hash[:identifier] }.first
-    partition_size =  {start_sector: partition.start_sector, end_sector: partition.end_sector}
+    partition_divider = params_hash[:partition_divider].to_i
+    raise "Unknown partition size" unless [1, 2, 4].include? partition_divider
+
+    # calculate the position of the end sector
+    new_end_sector = partition.start_sector.to_i + ( (partition.end_sector.to_i - partition.start_sector.to_i) / partition_divider)
+    partition_size =  {start_sector: partition.start_sector, end_sector: new_end_sector}
     partition = device.create_partition partition_size
     filesystem = {fs_type: params_hash[:fs_type].to_i || 3 }
     partition.format_job filesystem

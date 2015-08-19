@@ -24,19 +24,23 @@
   $( document ).ready( function () {
     if ($('.create_new_partition').is(':checked')) {
         $('#fs_selector').slideDown();
+        $('#size_selector').slideDown();
         $('#mount_after_creation').slideDown();
     } else {
         $('#fs_selector').slideUp();
         $('#mount_after_creation').slideUp();
+        $('#size_selector').slideUp();
     }
   });
   $(function () {
     $('.create_new_partition, .nothing').change(function () {
         if ($('.create_new_partition').is(':checked')) {
             $('#fs_selector').slideDown();
+            $('#size_selector').slideDown();
             $('#mount_after_creation').slideDown();
         } else {
             $('#fs_selector').slideUp();
+            $('#size_selector').slideUp();
             $('#mount_after_creation').slideUp();
         }
     });
@@ -90,16 +94,25 @@
                 <div class="alert alert-info">
                   <label > Create new partition</label>
                   <div class="row">
+                    <div id="size_selector" class="col-md-10 col-md-offset-1" style="display: none;">
+                      <ul class="list-group">
+                        <li class="list-group-item list-group-item-info">
+                          Please select a Partition size
+                        </li>
+                        <%= select_tag :partition_divider, options_for_select([
+                          ["#{number_to_human_size @selected_partiton.size}", 1],
+                          ["#{number_to_human_size (@selected_partiton.size/2)}", 2],
+                          ["#{number_to_human_size (@selected_partiton.size/4)}", 4]], 0), class: "form-control" %>
+                      </ul>
+                    </div>
                     <div id="fs_selector" class="col-md-10 col-md-offset-1" style="display: none;">
-                      <div class="well">
-                        <ul class="list-group">
-                          <li class="list-group-item list-group-item-success">
-                            Please select a file system type
-                          </li>
-                          <%= select_tag :fs_type, options_for_select([["Ext4", 0], ["Ext3", 1], ["NTFS", 2], ["FAT32", 3]], 0), class: "form-control" %>
+                      <ul class="list-group">
+                        <li class="list-group-item list-group-item-info">
+                          Please select a file system type
+                        </li>
+                        <%= select_tag :fs_type, options_for_select([["Ext4", 0], ["Ext3", 1], ["NTFS", 2], ["FAT32", 3]], 0), class: "form-control" %>
 
-                        </ul>
-                      </div>
+                      </ul>
                     </div>
 
                     <div id="mount_after_creation" class="col-md-10 col-md-offset-1" style="display: none;">

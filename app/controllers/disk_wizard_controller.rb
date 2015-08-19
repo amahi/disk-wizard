@@ -53,6 +53,10 @@ class DiskWizardController < ApplicationController
     if request.post?
       self.user_selections = {fs_type: fs_type, format: format, path: partition}
     end
+    if partition.match(/^\/dev/).blank?
+      device = Device.find_with_unallocated(user_selections['disk'])
+      @selected_partiton = (device.partitions.select{|part| part.identifier == user_selections['path'] }).first
+    end
   end
 
   # Expected key:values in @params:
@@ -64,7 +68,8 @@ class DiskWizardController < ApplicationController
     unless params[:fs_type].blank?
      # create new partition with this file system
      fs_type = params[:fs_type].to_i
-     self.user_selections = {fs_type: fs_type}
+     partition_divider = params[:partition_divider].to_i
+     self.user_selections = {fs_type: fs_type, partition_divider: partition_divider}
     end
     option = params[:option]
     label = params[:label].blank? ? nil : params[:label]
@@ -131,7 +136,8 @@ class DiskWizardController < ApplicationController
       end
 
       if option.include?(CREATE_OPTION)
-        para = {identifier: user_selections['identifier'], path: user_selections['disk'], fs_type: user_selections['fs_type']}
+        para = {identifier: user_selections['identifier'], path: user_selections['disk'],
+          fs_type: user_selections['fs_type'], partition_divider: user_selections['partition_divider']}
         job_name = :create_new_partition_job
         DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Job_name = #{job_name}, para = #{para}"
         jobs_queue.enqueue({job_name: job_name, job_para: para})
