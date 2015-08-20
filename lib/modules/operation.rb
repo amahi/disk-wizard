@@ -1,5 +1,15 @@
 module Operation
+
+  MEGA_BYTE = 1024 *1024
+  TERA_BYTE = 1024 *1024 * 1024 *1024
+  # 2 Tera byte is the edge between MBR and GPT
+  GPT_EDGE = 2 * TERA_BYTE
+
+  # the space in MB that we let it to the partition table
+  PARTITION_TABLE_SIZE_MB = 2
+
   DRIVE_MOUNT_ROOT = "/var/hda/files/drives"
+
   # Remove the partition from device/disk
   def delete
     #TODO: remove fstab entry if disk is permanently mounted
@@ -41,6 +51,16 @@ module Operation
 
   def self.included(base)
     base.extend(ClassMethods)
+  end
+
+  def megabyte_to_sectors number_of_megas
+    if self.instance_of? Partition
+      device = self.device
+    else
+      device = self
+    end
+    sector_size = DiskUtils.get_sector_size device.kname
+    return (MEGA_BYTE * number_of_megas) / sector_size.to_i
   end
 
   def pre_checks_job params_hash
