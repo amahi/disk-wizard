@@ -3,11 +3,6 @@
 class Device #< ActiveRecord::Base
   include Operation
 
-  MEGA_BYTE = 1024 *1024
-  TERA_BYTE = 1024 *1024 * 1024 *1024
-  # 2 Tera byte is the edge between MBR and GPT
-  GPT_EDGE = 2 * TERA_BYTE
-
   # Device attributes:
   #   vendor : Device vendor i.e. Western Digital Technologies
   #   model : Device model i.e. WDBLWE0120JCH
@@ -85,8 +80,12 @@ class Device #< ActiveRecord::Base
   end
 
   def create_partition(size = nil, type = Partition.PartitionType[:TYPE_PRIMARY])
+    # Shift start sector if it is on the patition table size
+    new_start_sector = [self.megabyte_to_sectors(PARTITION_TABLE_SIZE_MB), size[:start_sector].to_i].max
+    raise "cannot create a partition with negative size" if size[:end_sector].to_i < new_start_sector
+
     old_partitions = Device.find(self.path).partitions
-    DiskUtils.create_partition self, size[:start_sector], size[:end_sector]
+    DiskUtils.create_partition self, new_start_sector, size[:end_sector]
     new_partitions = Device.find(self.path).partitions
     # Return the newest partitions that is just add to the device
     return  new_partitions.reject {|part| old_partitions.include? part}.first
@@ -124,10 +123,10 @@ class Device #< ActiveRecord::Base
     Device.progress = 60
     kname = @kname
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:New partition Label #{params_hash[:label]}"
-    unless params_hash[:start_sector].blank?
+    unless params_hash[:end_sector].blank?
       # mount new partition
      device =  Device.find_with_unallocated "/dev/#{self.kname}"
-     new_partition = device.partitions.select{|part| part.start_sector.to_i == params_hash[:start_sector].to_i}.first
+     new_partition = device.partitions.select{|part| part.end_sector.to_i == params_hash[:end_sector].to_i}.first
     else
       new_partition = self.partitions.last
     end
@@ -139,11 +138,6 @@ class Device #< ActiveRecord::Base
     for partition in self.partitions
       partition.delete
     end
-  end
-
-  def megabyte_to_sectors number_of_megas
-    sector_size = DiskUtils.get_sector_size self.kname
-    return (MEGA_BYTE * number_of_megas) / sector_size.to_i
   end
 
   class << self

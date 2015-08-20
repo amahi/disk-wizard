@@ -1,5 +1,15 @@
 module Operation
+
+  MEGA_BYTE = 1024 *1024
+  TERA_BYTE = 1024 *1024 * 1024 *1024
+  # 2 Tera byte is the edge between MBR and GPT
+  GPT_EDGE = 2 * TERA_BYTE
+
+  # the space in MB that we let it to the partition table
+  PARTITION_TABLE_SIZE_MB = 2
+
   DRIVE_MOUNT_ROOT = "/var/hda/files/drives"
+
   # Remove the partition from device/disk
   def delete
     #TODO: remove fstab entry if disk is permanently mounted
@@ -43,6 +53,16 @@ module Operation
     base.extend(ClassMethods)
   end
 
+  def megabyte_to_sectors number_of_megas
+    if self.instance_of? Partition
+      device = self.device
+    else
+      device = self
+    end
+    sector_size = DiskUtils.get_sector_size device.kname
+    return (MEGA_BYTE * number_of_megas) / sector_size.to_i
+  end
+
   def pre_checks_job params_hash
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Params_hash #{params_hash}"
     # TODO: Implement rollback mechanism, if something went wrong bring back the system to original state,where it was before stating DW
@@ -70,7 +90,7 @@ module Operation
   def create_new_partition_job params_hash
     device = Device.find params_hash[:path]
     raise "We don't support GPT yet" if device.partition_table != "msdos"
-    raise "We don't support extended partitions yet, The number of partitions >= 3" if device.partition_count > 2
+    raise "You already reached partitions count limit, you have #{device.partition_count} partitions" if device.partition_count >= 4
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Params_hash #{params_hash}"
 
     device = Device.find_with_unallocated params_hash[:path]
