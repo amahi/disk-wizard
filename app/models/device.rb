@@ -123,10 +123,10 @@ class Device #< ActiveRecord::Base
     Device.progress = 60
     kname = @kname
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:New partition Label #{params_hash[:label]}"
-    unless params_hash[:start_sector].blank?
+    unless params_hash[:end_sector].blank?
       # mount new partition
      device =  Device.find_with_unallocated "/dev/#{self.kname}"
-     new_partition = device.partitions.select{|part| part.start_sector.to_i == params_hash[:start_sector].to_i}.first
+     new_partition = device.partitions.select{|part| part.end_sector.to_i == params_hash[:end_sector].to_i}.first
     else
       new_partition = self.partitions.last
     end
