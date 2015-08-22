@@ -56,6 +56,20 @@ class Device #< ActiveRecord::Base
     return self.partitions.count
   end
 
+  # Return new clone of the device without mounted partitions
+  def exclude_mounted_partition
+    new_device = self.clone
+    new_device.partitions = new_device.partitions.select{|part| part.mountpoint.blank?}
+    return new_device
+  end
+
+  # Return new clone of the device without small unallocated space
+  def exclude_small_unallocated_space
+    new_device = self.clone
+    new_device.partitions = new_device.partitions.reject{|part| Device.is_small_unallocated_partition(part)}
+    return new_device
+  end
+
   # @return [boolean] check the value of the @rm and return a boolean, true if the device is a removable device else false
   def removable?
     return self.rm.eql? 1
@@ -81,7 +95,7 @@ class Device #< ActiveRecord::Base
 
   def create_partition(size = nil, type = Partition.PartitionType[:TYPE_PRIMARY])
     # Shift start sector if it is on the patition table size
-    new_start_sector = [self.megabyte_to_sectors(PARTITION_TABLE_SIZE_MB), size[:start_sector].to_i].max
+    new_start_sector = self.shift_start_sector(size[:start_sector])
     raise "cannot create a partition with negative size" if size[:end_sector].to_i < new_start_sector
 
     old_partitions = Device.find(self.path).partitions
@@ -123,10 +137,11 @@ class Device #< ActiveRecord::Base
     Device.progress = 60
     kname = @kname
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:New partition Label #{params_hash[:label]}"
-    unless params_hash[:end_sector].blank?
+    unless params_hash[:start_sector].blank?
       # mount new partition
      device =  Device.find_with_unallocated "/dev/#{self.kname}"
-     new_partition = device.partitions.select{|part| part.end_sector.to_i == params_hash[:end_sector].to_i}.first
+     new_start_sector = self.shift_start_sector(params_hash[:start_sector])
+     new_partition = device.partitions.select{|part| part.start_sector.to_i == new_start_sector.to_i}.first
     else
       new_partition = self.partitions.last
     end
