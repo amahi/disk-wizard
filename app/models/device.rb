@@ -63,6 +63,13 @@ class Device #< ActiveRecord::Base
     return new_device
   end
 
+  # Return new clone of the device without small unallocated space
+  def exclude_small_unallocated_space
+    new_device = self.clone
+    new_device.partitions = new_device.partitions.reject{|part| Device.is_small_unallocated_partition(part)}
+    return new_device
+  end
+
   # @return [boolean] check the value of the @rm and return a boolean, true if the device is a removable device else false
   def removable?
     return self.rm.eql? 1

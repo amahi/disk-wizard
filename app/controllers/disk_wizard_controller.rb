@@ -36,6 +36,7 @@ class DiskWizardController < ApplicationController
       @selected_disk = Device.find_with_unallocated(user_selections['path'])
     end
     @selected_disk = @selected_disk.exclude_mounted_partition
+    @selected_disk = @selected_disk.exclude_small_unallocated_space
   end
 
   # Expected key:values in @params:

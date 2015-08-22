@@ -5,6 +5,9 @@ module Operation
   # 2 Tera byte is the edge between MBR and GPT
   GPT_EDGE = 2 * TERA_BYTE
 
+  # Consider this space as small space
+  SMALL_UNALLOCATED_PARTITION = 3 * MEGA_BYTE
+
   # the space in MB that we let it to the partition table
   PARTITION_TABLE_SIZE_MB = 2
 
@@ -172,5 +175,10 @@ module Operation
         return Device.new data_hash
       end
     end
+
+    def is_small_unallocated_partition partition
+      return (partition.free_space and partition.size < SMALL_UNALLOCATED_PARTITION)
+    end
+
   end
 end
