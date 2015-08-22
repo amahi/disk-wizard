@@ -92,6 +92,7 @@ class DiskWizardController < ApplicationController
   # Expected key:values in @params:
   #   :debug => Integer value(1) if debug mode has selected in fourth step(confirmation), else nil
   def progress
+    Device.progress = 0
     debug_mode = params[:debug]
     self.user_selections = {debug: debug_mode}
   end
@@ -113,7 +114,6 @@ class DiskWizardController < ApplicationController
 
     jobs_queue = JobQueue.new(user_selections.length)
     jobs_queue.enqueue({job_name: :pre_checks_job, job_para: {path: path}})
-    Device.progress = 0
 
     if user_selections['format']
       para = {path: path, fs_type: user_selections['fs_type'], label: label}
