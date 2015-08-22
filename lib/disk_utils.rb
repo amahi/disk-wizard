@@ -240,13 +240,13 @@ class DiskUtils
     def format device, fstype
       case fstype
         when Partition.FilesystemType[:TYPE_EXT4]
-          params = " -q #{device.path}"
+          params = " -q -E lazy_itable_init #{device.path}"
           program_name = 'ext4'
         when Partition.FilesystemType[:TYPE_EXT3]
-          params = " -q #{device.path}"
+          params = " -q -E lazy_itable_init #{device.path}"
           program_name = 'ext3'
         when Partition.FilesystemType[:TYPE_NTFS]
-          params = " -q -f #{device.path}" # Perform quick (fast) format and -q for quiet execution
+          params = " -q -f -Q #{device.path}" # Perform quick (fast) format and -q for quiet execution
           program_name = 'ntfs'
         when Partition.FilesystemType[:TYPE_FAT32]
           params = " #{device.path}"
