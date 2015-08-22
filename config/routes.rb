@@ -19,7 +19,6 @@ DiskWizards::Engine.routes.draw do
   match 'manage' => 'disk_wizard#manage_disk',via: [:get,:post]
   match 'confirmation' => 'disk_wizard#confirmation',via: [:get,:post]
   get 'complete' => 'disk_wizard#done'
-  get 'get_progress' => 'disk_wizard#operations_progress'
   get 'error' => 'disk_wizard#error'
   get 'debug_info' => 'disk_wizard#debug_info'
   post 'process' => 'disk_wizard#progress'
