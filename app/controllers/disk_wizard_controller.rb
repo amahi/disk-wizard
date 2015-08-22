@@ -151,10 +151,10 @@ class DiskWizardController < ApplicationController
           # send start sector as to be able to know which partition to mount
           device = Device.find_with_unallocated(user_selections['disk'])
           @selected_disk = (device.partitions.select{|part| part.identifier == user_selections['identifier'] }).first
-          end_sector = @selected_disk.end_sector
+          start_sector = @selected_disk.start_sector
         end
 
-        para = {path: path, label: label, end_sector: end_sector}
+        para = {path: path, label: label, start_sector: start_sector}
         job_name = :mount_job
         jobs_queue.enqueue({job_name: job_name, job_para: para})
       end

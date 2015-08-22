@@ -6,10 +6,10 @@ module Operation
   GPT_EDGE = 2 * TERA_BYTE
 
   # Consider this space as small space
-  SMALL_UNALLOCATED_PARTITION = 3 * MEGA_BYTE
+  SMALL_UNALLOCATED_PARTITION = 2 * MEGA_BYTE
 
   # the space in MB that we let it to the partition table
-  PARTITION_TABLE_SIZE_MB = 2
+  PARTITION_TABLE_SIZE_MB = 1
 
   DRIVE_MOUNT_ROOT = "/var/hda/files/drives"
 
@@ -136,6 +136,11 @@ module Operation
     return DiskUtils.get_path self
   end
 
+  # Shift start sector if it is on the patition table size
+  def shift_start_sector start_sector
+     [self.megabyte_to_sectors(PARTITION_TABLE_SIZE_MB), start_sector.to_i].max
+  end
+
   # Reload the device/partition attribute from system.
   def reload
     dev_path = "/dev/#{self.kname}"
@@ -179,6 +184,5 @@ module Operation
     def is_small_unallocated_partition partition
       return (partition.free_space and partition.size < SMALL_UNALLOCATED_PARTITION)
     end
-
   end
 end
