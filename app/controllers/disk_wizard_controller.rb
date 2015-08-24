@@ -10,6 +10,8 @@ class DiskWizardController < ApplicationController
   DELETE_OPTION = '2'
   CREATE_OPTION = '3'
 
+  LVM_FSTYPE = "LVM2_member"
+
   # @return [Device Array] : Return array of Device objects, which are mounted(permanent or temporary) in the HDA.
   # Render the first step of the Disk-Wizard(DW)
   def select_device
@@ -58,6 +60,11 @@ class DiskWizardController < ApplicationController
     if partition.match(/^\/dev/).blank?
       device = Device.find_with_unallocated(user_selections['disk'])
       @selected_partiton = (device.partitions.select{|part| part.identifier == user_selections['path'] }).first
+    else
+      @selected_partiton = Device.find partition
+    end
+    if @selected_partiton.fstype.eql?(LVM_FSTYPE)
+      flash[:error] = %Q[We do not recommend <a href="#" target="_blank">LVM partitions at Amahi and here is why</a>.]
     end
   end
 
