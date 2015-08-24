@@ -1,0 +1,6 @@
+#errors
+  - flash.each do |name, msg|
+		- name = "danger" if name == "error"
+		div[class=" alert alert-#{name}"]
+		  strong
+		   =sanitize(msg)
