@@ -64,7 +64,7 @@ class DiskWizardController < ApplicationController
       @selected_partiton = Device.find partition
     end
     if @selected_partiton.is_a? Partition and @selected_partiton.fstype.eql?(LVM_FSTYPE)
-      flash[:error] = %Q[We do not recommend <a href="#" target="_blank">LVM partitions at Amahi and here is why</a>.]
+      flash[:error] = %Q[The Amahi team does not recommend use of LVM. <a href="https://www.amahi.org/faq/does-amahi-support-lvm" target="_blank">See why</a>.]
     end
   end
 
