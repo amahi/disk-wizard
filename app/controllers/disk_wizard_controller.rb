@@ -80,7 +80,11 @@ class DiskWizardController < ApplicationController
      partition_divider = params[:partition_divider].to_i
      self.user_selections = {fs_type: fs_type, partition_divider: partition_divider}
     end
-    option = params[:option]
+    if params[:option].blank?
+      option = [""]
+    else
+      option = params[:option]
+    end
     label = params[:label].blank? ? nil : params[:label]
     if not( label.blank? ) and label.size > 11 and user_selections['fs_type'].eql?(3)
       redirect_to disk_wizards_engine.manage_path, :flash => {:error => "label have to be less than 12 character in FAT32"}
