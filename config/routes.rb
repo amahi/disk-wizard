@@ -20,7 +20,6 @@ DiskWizards::Engine.routes.draw do
   match 'confirmation' => 'disk_wizard#confirmation',via: [:get,:post]
   get 'complete' => 'disk_wizard#done'
   get 'error' => 'disk_wizard#error'
-  get 'debug_info' => 'disk_wizard#debug_info'
   post 'process' => 'disk_wizard#progress'
   post 'ajax_process' => 'disk_wizard#process_disk'
 
