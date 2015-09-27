@@ -77,12 +77,12 @@ class Fstab
     backup_fstab
     #TODO: Append format_entry(dev, opts) to "/etc/fstab" by using "Command" library not using File.open
     command = "echo"
-    params = "  #{@contents} ! sudo tee /etc/fstab"
+    params = "  #{@contents} | sudo tee /etc/fstab"
     echo = CommandExecutor.new command, params
     echo.execute
     raise "Command execution error: #{echo.stderr}" if not echo.success?
     command = "echo"
-    params = " #{format_entry(dev, opts)} ! sudo tee -a /etc/fstab"
+    params = " #{format_entry(dev, opts)} | sudo tee -a /etc/fstab"
     echo = CommandExecutor.new command, params
     echo.execute
     raise "Command execution error: #{echo.stderr}" if not echo.success?
@@ -318,7 +318,7 @@ class Fstab
     return unless @backup
     #sh -c "echo 'something' >> /etc/privilegedfile"
     command = "echo"
-    params = " #{@contents} ! sudo tee  #{@backup_dir}/fstab.#{Time.now.to_f}.bak"
+    params = " #{@contents} | sudo tee  #{@backup_dir}/fstab.#{Time.now.to_f}.bak"
 
     echo = CommandExecutor.new command, params
     echo.execute
