@@ -10,8 +10,6 @@ html[dir="#{@locale_direction}" lang="#{I18n.locale}" xml:lang="#{I18n.locale}"]
       = stylesheet_link_tag(theme_stylesheet_path('style', theme.default))
       = stylesheet_link_tag(theme_stylesheet_path('rtl', theme.default)) if rtl?
     = stylesheet_link_tag "basic"
-    = stylesheet_link_tag "bootstrap"
-    = stylesheet_link_tag "bootstrap-theme"
 
     = theme_stylesheet_link_tag 'style'
     = theme_stylesheet_link_tag('rtl') if rtl?
@@ -29,8 +27,6 @@ html[dir="#{@locale_direction}" lang="#{I18n.locale}" xml:lang="#{I18n.locale}"]
     link rel="shortcut icon" href="/favicon.ico" type="image/x-icon"
 
     = javascript_include_tag "jsapi", "chartkick"
-    = javascript_include_tag "bootstrap"
-    = javascript_include_tag "bootstrap-contextmenu"
     = javascript_include_tag "disks"
 
     = csrf_meta_tags
@@ -73,3 +69,4 @@ html[dir="#{@locale_direction}" lang="#{I18n.locale}" xml:lang="#{I18n.locale}"]
 
     #js-templates[style="display:none"]
       = yield :js_templates
+

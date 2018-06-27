@@ -3,12 +3,8 @@
   <title><%= @page_title ||= 'Amahi Disk Wizard' %></title>
 
   <%= stylesheet_link_tag "basic", media: "all" %>
-  <%= stylesheet_link_tag "bootstrap", media: "all" %>
-  <%= stylesheet_link_tag "bootstrap-theme", media: "all" %>
 
   <%= javascript_include_tag "jsapi", "chartkick" %> <!-- https://developers.google.com/chart/interactive/faq#offline Must have a internet connection to work google charts-->
-  <%= javascript_include_tag "bootstrap" %>
-  <%= javascript_include_tag "bootstrap-contextmenu" %>
   <%= javascript_include_tag "disks" %>
 
   <%= favicon_link_tag "fav/favicon.ico" %>
