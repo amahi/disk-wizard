@@ -1,5 +1,5 @@
 class DiskServiceController < ApplicationController
-  before_filter :admin_required
+  before_action :admin_required
   def get_all_devices
     # probe_kernal
     #mounted_disks = Device.mounts

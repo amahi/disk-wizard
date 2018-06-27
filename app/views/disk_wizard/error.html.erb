@@ -1,6 +1,3 @@
-<%= stylesheet_link_tag "bootstrap", media: "all" %>
-<%= stylesheet_link_tag "bootstrap-theme", media: "all" %>
-<%= javascript_include_tag "bootstrap" %>
 <script>
     function getDebugURL() {
         $.getJSON("<%= defined?(disk_wizards_engine) ? disk_wizards_engine.debug_info_path : debug_info_path %>", function (data) {

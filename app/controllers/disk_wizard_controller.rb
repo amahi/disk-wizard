@@ -1,7 +1,7 @@
 class DiskWizardController < ApplicationController
-  before_filter :admin_required
+  before_action :admin_required
   # TODO: Clear mode(debug mode flag) only once at the beginning, not in every action
-  before_filter :clear_mode, except: [:process_disk]
+  before_action :clear_mode, except: [:process_disk]
 
   layout 'wizard'
 
@@ -142,7 +142,7 @@ class DiskWizardController < ApplicationController
   end
 
   # Clear the debug_mode flag.
-  # TODO: This is used as a before_filter with exceptions,this might cause redundant calls to this method(reset the flag which has been already cleared)
+  # TODO: This is used as a before_action with exceptions,this might cause redundant calls to this method(reset the flag which has been already cleared)
   def clear_mode
     CommandExecutor.debug_mode = nil
   end
