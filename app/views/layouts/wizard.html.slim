@@ -40,7 +40,7 @@ html[dir="#{@locale_direction}" lang="#{I18n.locale}" xml:lang="#{I18n.locale}"]
       = render 'shared/flash_messages'
       #app.inner.container
         - unless @no_tabs
-          /= render 'shared/tabs'
+          = render 'shared/tabs'
 
           #preferences
             .preftab
@@ -78,4 +78,3 @@ html[dir="#{@locale_direction}" lang="#{I18n.locale}" xml:lang="#{I18n.locale}"]
 
     #js-templates[style="display:none"]
       = yield :js_templates
-
