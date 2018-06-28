@@ -1,0 +1,60 @@
+.panel.panel-default{
+	overflow: hidden;
+	background: white;
+}
+@media(max-width: 768px){
+	#loading_animation{
+		margin-left: 10px;
+		margin-right: 10px;
+	}
+}
+#loading_animation{
+	margin-top: 20px;
+}
+#progress_message{
+    margin-top: 10px;
+    color: #505050;
+    display: inline-block;
+}
+.well{
+	width: 75%;
+}
+.panel .nav li.nav-item a.nav-link{
+    color: #565656;
+    font-weight: bold;
+    text-transform: capitalize;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    height: 100%;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+.panel .nav li.nav-item.active a.nav-link{
+	color: white;
+}
+.panel .nav li.nav-item.active{
+	background: #63b6ea;
+	color: white;
+}
+#devices_data form{
+	width: 100%;
+	margin-left: 30px;
+	margin-right: 30px;
+}
+#next_button{
+	margin-right: 15px;
+}
+#refresh_devices_button{
+	margin-left: 15px;
+	padding: 8px;
+}
+.panel-title{
+    font-size: 1.4rem;
+    text-decoration: underline;
+    margin-bottom: 16px;
+}
+.panel-body{
+    margin-right: 15px;
+    margin-left: 15px;
+}
