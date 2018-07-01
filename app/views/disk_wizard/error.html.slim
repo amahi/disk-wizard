@@ -1,0 +1,98 @@
+javascript:
+  function getDebugURL() {
+      $.getJSON("#{defined?(disk_wizards_engine) ? disk_wizards_engine.debug_info_path : debug_info_path}", function (data) {
+          if (data["error"]) {
+              alert("An error occourd while generating debug_info paste:\n\n" + data['error']);
+              return 0;
+          }
+          $("#fpaste_url").attr("value", data['url']);
+          $('#debug_info').slideDown();
+      });
+  }
+  $(function () {
+      $('#fpaste_url').tooltip();
+      var $loading = $('#fpaste_loading').hide();
+      $(document).ajaxStart(function () {
+        $loading.show();
+      }).ajaxStop(function () {
+         $loading.hide();
+      });
+  });
+
+css:
+  /* Fix for conflicts with platform CSS */
+  
+  input[type="text"] {
+      border: 1px solid #d0cece;
+      height: auto;
+      width: 100%;
+      padding: auto;
+      background: white;
+      font-size: large;
+  }
+
+  hr {
+      -moz-border-bottom-colors: none;
+      -moz-border-image: none;
+      -moz-border-left-colors: none;
+      -moz-border-right-colors: none;
+      -moz-border-top-colors: none;
+      border-color: #dfdfdf;
+      -moz-use-text-color: #dfdfdf;
+      border-style: solid none;
+      border-width: 1px 0;
+      margin: 0;
+      padding: 0;
+  }
+
+  #content {
+     min-height: 100%;
+  }
+
+  #footer {
+     height: auto;
+     margin: auto;
+     bottom: 0px;
+  }
+
+.alert.alert-danger.fade.in
+  button.close aria-hidden="true" data-dismiss="alert" type="button" 
+    | ×
+  h4 Oh snap! You got an error!
+  .well
+    p.text-primary.text-center
+      = @exception
+      | \.
+
+  .row.text-center
+    button#get_debug_info.btn.btn-warning onclick="getDebugURL();" 
+      | Get Debug infomation
+    button#send_crash_report.btn.btn-default onclick="sendReport();" 
+      span.glyphicon.glyphicon-send
+      | Send Report to Amahi
+    a.btn.btn-default href="/tab/disks/disk_wizards" type="button" 
+      | Or try again
+
+  .row
+    #fpaste_loading.col-md-8.col-md-offset-2
+      = image_tag "disk_wizard/progress.gif"
+      p.text-primary
+        span.glyphicon.glyphicon-time
+        | Please wait.Generating fpaste URL.......
+    #debug_info.col-md-10.col-md-offset-1 style=("display: none;") 
+      .panel.panel-default
+        form.form-inline.text-center role="form" 
+          .form-group.has-success.has-feedback
+            label.control-label for="fpaste_url" 
+              | URL:
+              span.glyphicon.glyphicon-globe
+            input#fpaste_url.form-control autocomplete="off" data-placement="top" data-toggle="tooltip" onclick="$(this).select();" placeholder=("Generating URL..") style=("width: 500px;") title=("Press Ctrl+c to coppy URL to clipboard") type="text" /
+            span.glyphicon.glyphicon-ok.form-control-feedback
+        .panel-body.text-left
+          p.text-primary
+            | After generating your paste, copy the generated url above.
+          p.text-primary
+            | Head over to the Amahi IRC channel, and share your link with one of the helpful folks there.
+          p.text-info
+            | Good Luck! Thanks for choosing Amahi.
+ 

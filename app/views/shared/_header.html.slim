@@ -1,0 +1,82 @@
+head
+  meta content=("text/html; charset=utf-8") http-equiv="Content-Type"
+  title = @page_title ||= 'Amahi Disk Wizard'
+  = stylesheet_link_tag "basic", media: "all"
+  = javascript_include_tag "jsapi", "chartkick"
+  /! https://developers.google.com/chart/interactive/faq#offline Must have a internet connection to work google charts
+  = javascript_include_tag "disks"
+  = favicon_link_tag "fav/favicon.ico"
+  = csrf_meta_tag
+
+  javascript:
+    $(function () {
+        //TODO: Tempory fix for bootstrap theme styles conflict
+        $('#preferences').removeClass()
+    });
+
+  css:
+    hr {
+        -moz-border-bottom-colors: none;
+        -moz-border-image: none;
+        -moz-border-left-colors: none;
+        -moz-border-right-colors: none;
+        -moz-border-top-colors: none;
+        border-color: #dfdfdf;
+        -moz-use-text-color #dfdfdf;
+        border-style: solid none;
+        border-width: 1px 0;
+        margin: 0;
+        padding: 0;
+    }
+    #content {
+        min-height: 100%;
+    }
+    #footer {
+        height: auto;
+        margin: auto;
+        bottom: 0px;
+    }
+
+body
+  .row.text-center
+    .col-md-12
+      .panel.panel-default
+        ul.nav.nav-pills.nav-justified.alert-warning
+          li class="#{ params[:action] == 'select_device' ? 'active' : 'disabled' }"
+            a href="#" 
+              | Select new drive
+              span.glyphicon.glyphicon-chevron-right
+          li class="#{ params[:action] == 'select_fs' ? 'active' : 'disabled' }"
+            a href="#" 
+              | Choose file system
+              span.glyphicon.glyphicon-chevron-right
+          li class="#{ params[:action] == 'manage_disk' ? 'active' : 'disabled' }" 
+            a href="#" 
+              | Options
+              span.glyphicon.glyphicon-chevron-right
+          li class="#{ params[:action] == 'confirmation' ? 'active' : 'disabled' }"
+            a href="#" 
+              | Confirmation
+              span.glyphicon.glyphicon-chevron-right
+          li class="#{ params[:action] == 'done' ? 'active' : 'disabled' }"
+            a href="#" 
+              | Done
+              span.glyphicon.glyphicon-ok
+        hr/
+        /! TEMP code :- params[:action] == "select_fs"
+        - if flash[:error]
+          .aleart_box style=("position: absolute;z-index: 9999;left: 12.5%;width: 75%") 
+            .alert.alert-danger.alert-dismissable
+              button.close aria-hidden="true" data-dismiss="alert" type="button" 
+                | ×
+              strong Warning!
+              = flash[:error]
+          - flash[:error] = nil
+        - if flash[:success]
+          .aleart_box style=("position: absolute;z-index: 9999;left: 12.5%;width: 75%") 
+            .alert.alert-success.alert-dismissable
+              button.close aria-hidden="true" data-dismiss="alert" type="button" 
+                | ×
+              = flash[:success]
+          - flash[:success] = nil
+ 

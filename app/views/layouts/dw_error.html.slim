@@ -1,0 +1,42 @@
+doctype html
+html lang="en" 
+  head
+    meta content=("text/html; charset=utf-8") http-equiv="Content-Type"
+    title = @page_title ||= 'Amahi Disk Wizard error and debug page'
+
+    = stylesheet_link_tag "application", media: "all"
+    = stylesheet_link_tag "basic", media: "all"
+    = javascript_include_tag "//www.google.com/jsapi", "chartkick"
+    = javascript_include_tag "application"
+    = javascript_include_tag :defaults
+
+  body
+    .container style=("margin-top: 10px") 
+      .row.text-center
+        .col-md-12
+          .panel.panel-default
+            ul.nav.nav-pills.nav-justified.alert-warning
+              li.disabled
+                a href="#" 
+                  | Error
+                  span.glyphicon.glyphicon-exclamation-sign
+            hr/
+            /! TEMP code :- params[:action] == "select_fs"
+            - if flash[:error]
+              .aleart_box style=("position: absolute;z-index: 9999;left: 12.5%;width: 75%") 
+                .alert.alert-danger.alert-dismissable
+                  button.close aria-hidden="true" data-dismiss="alert" type="button" 
+                    | ×
+                  strong Warning!
+                  = flash[:error]
+              - flash[:error] = nil
+
+            - if flash[:success]
+              .aleart_box style=("position: absolute;z-index: 9999;left: 12.5%;width: 75%") 
+                .alert.alert-success.alert-dismissable
+                  button.close aria-hidden="true" data-dismiss="alert" type="button" 
+                    | ×
+                  = flash[:success]
+              - flash[:success] = nil
+            = yield
+ 
