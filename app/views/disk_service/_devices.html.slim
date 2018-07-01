@@ -1,0 +1,15 @@
+- for device in @new_disks
+  tr style="cursor: pointer;" class="accordion-toggle #{!!((user_selections['path'] == device.path) rescue false) ? 'info' : ''}"
+    td
+      = radio_button_tag(:device, device.path, !!((user_selections['path'] == device.path) rescue false))
+    td
+      = device.model || "N/A"
+      - if device.removable?
+        |  
+        span.glyphicon.glyphicon-floppy-disk data-toggle="tooltip" style=("color: #ff3e17") title=("Removable/External Device") 
+      - elsif device.partition_table.blank?
+        |  
+        span.glyphicon.glyphicon-star data-toggle="tooltip" style=("color: #1babff") title=("New Device(No Partition Table)") 
+    td = device.path
+    td = number_to_human_size device.size
+ 

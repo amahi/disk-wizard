@@ -1,0 +1,49 @@
+- javascript_include_tag "progress"
+
+javascript:
+  $(document).ready(function () {
+      start_processing();
+       setInterval(ajaxd, 2000);
+   });
+
+   function ajaxd() {
+       $.ajax({
+           type: "GET",
+           dataType: "json",
+           url: "get_progress",
+           // data : "user=success",
+           success: function (progress) {
+               // alert(progress.message + progress.percentage);
+               $("#progress_message").html(progress.message);
+               if (progress.percentage < 0) {
+                   window.location.href = "error";
+               }
+               
+               if (progress.percentage == 100)
+                   window.location.href = "complete";
+           }
+       });
+   }
+
+   function start_processing() {
+       $.ajax({
+           type: "POST",
+           dataType: "json",
+           url: "ajax_process"
+       });
+   }
+
+.panel-body
+  - "***************#{user_selections}"
+  .row
+    .col-md-5.col-md-offset-3.well
+      - image_tag("disk_wizard/loading_2.GIF")
+      .progress.progress-striped.active
+        .progress-bar.progress-bar-success aria-valuemax="100" aria-valuemin="0" aria-valuenow="100" role="progressbar" style=("width: 100%") 
+          span.sr-only
+            | 100%
+      p.text-primary
+        = image_tag "disk_wizard/progress.gif"
+        /* <span class="glyphicon glyphicon-time"></span */
+        span#progress_message wait....
+ 

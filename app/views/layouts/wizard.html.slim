@@ -5,6 +5,7 @@ html[dir="#{@locale_direction}" lang="#{I18n.locale}" xml:lang="#{I18n.locale}"]
     title = full_page_title
 
     = stylesheet_link_tag 'application'
+    = stylesheet_link_tag 'disk_wizards'
 
     - if theme.name != "default" and theme.disable_inheritance == false
       = stylesheet_link_tag(theme_stylesheet_path('style', theme.default))
@@ -31,42 +32,50 @@ html[dir="#{@locale_direction}" lang="#{I18n.locale}" xml:lang="#{I18n.locale}"]
 
     = csrf_meta_tags
 
-  body.basic
-
+  body
+    
     = render 'layouts/header'
 
     #content
+      = render 'layouts/subheader'
       = render 'shared/flash_messages'
-      #app.inner
-        .row.text-center
-          .col-md-12
-            .panel.panel-default
-              ul.nav.nav-pills.nav-justified.alert-warning
-                li class=(params[:action] == "select_device" ? "active" : "disabled")
-                  a href="#"
-                    |Select new drive
-                    span.glyphicon.glyphicon-chevron-right
-                li class=(params[:action] == "select_fs" ? "active" : "disabled")
-                  a href="#"
-                    |Choose file system
-                    span.glyphicon.glyphicon-chevron-right
-                li class=(params[:action] == "manage_disk" ? "active" : "disabled")
-                  a href="#"
-                    | Options
-                    span.glyphicon.glyphicon-chevron-right
-                li class=(params[:action] == "confirmation" ? "active" : "disabled")
-                  a href="#"
-                    | Confirmation
-                    span.glyphicon.glyphicon-chevron-right
-                li class=(params[:action] == "done" ? "active" : "disabled")
-                  a href="#"
-                    | Done
-                    span.glyphicon.glyphicon-ok
-              hr/
-              = yield
+      #app.inner.container
+        - unless @no_tabs
+          = render 'shared/tabs'
+
+          #preferences
+            .preftab
+              .row.text-center
+                .col-md-12
+                  .panel.panel-default
+                    ul.nav.nav-pills.nav-justified.alert-warning
+                      li.nav-item class=(params[:action] == "select_device" ? "active" : "disabled")
+                        a.nav-link href="#"
+                          |Select new drive
+                          span.glyphicon.glyphicon-chevron-right
+                      li.nav-item class=(params[:action] == "select_fs" ? "active" : "disabled")
+                        a.nav-link href="#"
+                          |Choose file system
+                          span.glyphicon.glyphicon-chevron-right
+                      li.nav-item class=(params[:action] == "manage_disk" ? "active" : "disabled")
+                        a.nav-link href="#"
+                          | Options
+                          span.glyphicon.glyphicon-chevron-right
+                      li.nav-item class=(params[:action] == "confirmation" ? "active" : "disabled")
+                        a.nav-link href="#"
+                          | Confirmation
+                          span.glyphicon.glyphicon-chevron-right
+                      li.nav-item class=(params[:action] == "done" ? "active" : "disabled")
+                        a.nav-link href="#"
+                          | Done
+                          span.glyphicon.glyphicon-ok
+                      hr/
+                    = yield
+        - else
+          = yield
       .push
+
     = render 'layouts/footer'
 
     #js-templates[style="display:none"]
       = yield :js_templates
-

@@ -8,6 +8,7 @@ class DiskWizardController < ApplicationController
   # @return [Device Array] : Return array of Device objects, which are mounted(permanent or temporary) in the HDA.
   # Render the first step of the Disk-Wizard(DW)
   def select_device
+    @page_title = t('disk_wizard')
     DebugLogger.info "--disk_wizard_start--"
     @mounted_disks = Device.mounts
   end

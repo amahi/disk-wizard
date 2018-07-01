@@ -1,0 +1,131 @@
+javascript:
+  function getDebugURL() {
+      $.getJSON("#{defined?(disk_wizards_engine) ? disk_wizards_engine.debug_info_path : debug_info_path}", function (data) {
+          if (data["error"]) {
+              alert("An error occourd while generating debug_info paste:\n\n" + data['error']);
+              return 0;
+          }
+          $("#fpaste_url").attr("value", data['url']);
+          $('#debug_info').slideDown();
+      });
+  }
+  
+  $(function () {
+      $('#fpaste_url').tooltip();
+      var $loading = $('#fpaste_loading').hide();
+      $(document).ajaxStart(function () {
+          $loading.show();
+      }).ajaxStop(function () {
+         $loading.hide();
+      });
+  });
+
+css:
+  /* Fix for conflicts with platform CSS */
+  
+  input[type="text"] {
+      border: 1px solid #d0cece;
+      height: auto;
+      width: 100%;
+      padding: 0px;
+      background: white;
+      font-size: large;
+  }
+
+.row
+  br/
+  - if user_selections['debug']
+    .col-md-10.col-md-offset-1
+      .panel.panel-warning
+        .panel-heading
+          | Debug Information
+          span.glyphicon.glyphicon-info-sign
+        .panel-body.text-left
+          p.text-muted
+            | Note:
+          p.text-muted
+            | 1. None of the commands got executed on HDA.
+          p.text-muted
+            | 2. Pipeline character(|) has encoded as exclamation character(!).
+          p.text-muted
+            | 3. Order(#) of the commands does matter if you try to execute them manually.
+        table.table.table-bordered.table-hover
+          thead
+            tr.active
+              th.text-center.text-primary style=("width: 5%;")
+              | #
+              th.text-center.text-primary style=("width: 20%;") 
+              | Command name
+              th.text-center.text-primary
+              | Parameters
+
+          tbody
+            - count = 0
+            - @operations.each do |operation|
+            - count += 1
+              - if operation[:name].eql? 'exception'
+                tr
+                  td style=("vertical-align: middle;color: red;") 
+                    span.glyphicon.glyphicon-exclamation-sign
+                  td.text-warning style=("vertical-align: middle;") = operation[:name]
+                  td.text-justify
+                    - operation[:message].try(:each_line) do |line|
+                      = line
+                      br/
+              - else
+                tr
+                  td style=("vertical-align: middle;") = count
+                  td = operation[:name]
+                  td.text-justify
+                    - operation[:parameters].try(:each_line) do |line|
+                      = line
+                      br/
+      - else
+      - @user_selections["format"]
+        .col-md-6.col-md-offset-3
+          table.table
+            thead
+              tr
+                th 
+                  | Disk name
+                th 
+                  | New filesystem type
+                - if @user_selections["option"]
+                  th
+                    | Mount point
+            tbody
+              tr
+                td = @user_selections['path']
+                td = Partition.FilesystemType.key(@user_selections['fs_type'].to_i)
+                - if @user_selections['option']
+                  td
+                    | \/var/hda/disks/#{@user_selections['label']}
+
+          .col-md-12.well.well-sm
+            a.btn.btn-success href="/tab/disks/disk_wizards"
+              | Continue with another device
+            button#get_debug_info.btn.btn-warning onclick="getDebugURL();" 
+              | Get Debug infomation
+        
+        #fpaste_loading.col-md-8.col-md-offset-2
+          = image_tag "disk_wizard/progress.gif"
+          p.text-primary
+            span.glyphicon.glyphicon-time
+            | Please wait.Generating fpaste URL.......
+        #debug_info.col-md-10.col-md-offset-1 style=("display: none;") 
+          .panel.panel-default
+            form.form-inline role="form" 
+              .form-group.has-success.has-feedback
+                label.control-label for="fpaste_url" 
+                  | URL:
+                  span.glyphicon.glyphicon-globe
+                input#fpaste_url.form-control autocomplete="off" data-placement="top" data-toggle="tooltip" onclick="$(this).select();" placeholder=("Generating URL..") style=("width: 500px;") title=("Press Ctrl+c to coppy URL to clipboard") type="text" /
+                span.glyphicon.glyphicon-ok.form-control-feedback
+            .panel-body.text-left
+              p.text-primary
+                | After generating your paste, copy the generated url above.
+              p.text-primary
+                | Head over to the Amahi IRC channel, and share your link with one of the helpful folks there.
+              p.text-info
+                | Good Luck! Thanks for choosing Amahi.
+ 

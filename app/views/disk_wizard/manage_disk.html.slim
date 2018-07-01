@@ -1,0 +1,41 @@
+javascript:
+  $(function () {
+      $('.mount_check').change(function () {
+          var $this = $(this);
+          
+          // $this will contain a reference to the checkbox
+          
+          if ($this.is(':checked')) {
+              $('#label_input').slideDown();
+          } else {
+              $('#label_input').slideUp();
+          }
+      });
+  });
+
+.panel-body
+  = form_tag(disk_wizards_engine.confirmation_path, {method: "POST", id: "options"})
+  = hidden_field_tag 'device', user_selections['path']
+  .row
+    - "*#{user_selections}"
+    .col-md-5.col-md-offset-3.well
+      ul.list-group
+        li.list-group-item.list-group-item-success
+          h5 
+            | What would you like to do?
+        li.list-group-item
+          .checkbox
+            = check_box_tag('option[]', 1, !!((user_selections['option'].include? '1') rescue false), class: 'mount_check')
+            .alert.alert-info
+              label for="option_"  
+                | Mount this drive automatically.
+              #label_input.input-group.input-group-sm style=("#{!!((user_selections['option'].include? '1') rescue false) ? nil : 'display: none'}") 
+                span.input-group-addon
+                  | Enter a label
+                input#label.form-control name="label" placeholder="Label" style=("margin: auto;") type="text" value=("#{user_selections['label'] || nil}") /
+  .row.text-left
+    = link_to(disk_wizards_engine.file_system_path , class: "btn btn-default") do
+      | ← Back
+    = link_to '#', :onclick => "$('#options').submit()", style: "float: right;", class: "btn btn-success" do
+      | Next →
+ 
