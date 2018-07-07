@@ -44,15 +44,15 @@ javascript:
         span#progress_message 
           | Scanning devices....
 
-  #devices_data.row style=("display: none;") 
+  #devices_data.row.mt-2.mb-2 style=("display: none;")
     = form_tag(disk_wizards_engine.file_system_path, {method: "POST", id: "select_device"}) do
       table.settings.table-bordered.table.table-hover
         thead
           tr.accordion-toggle data-target="#demo1" data-toggle="collapse" style=("cursor: pointer") 
-            th.text-center Select
-            th.text-center Model
-            th.text-center Path
-            th.text-center Size
+            th.text-center.pl-1 Select
+            th.text-center.pl-1 Model
+            th.text-center.pl-1 Path
+            th.text-center.pl-1 Size
         tbody#table_contents
 
   .text-right
@@ -75,7 +75,7 @@ javascript:
             - @mounted_disks.each do |disk|
               .col-md-6
                 h5
-                  = disk[:path]
+                  = disk[:path] + " "
                   span.label.label-default
                     = number_to_human_size disk[:bytes_total]
 
