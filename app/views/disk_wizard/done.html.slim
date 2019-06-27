@@ -62,7 +62,7 @@ css:
           tbody
             - count = 0
             - @operations.each do |operation|
-            - count += 1
+              - count += 1
               - if operation[:name].eql? 'exception'
                 tr
                   td style=("vertical-align: middle;color: red;") 
@@ -80,52 +80,51 @@ css:
                     - operation[:parameters].try(:each_line) do |line|
                       = line
                       br/
-      - else
-      - @user_selections["format"]
-        .col-md-6.col-md-offset-3
-          table.table
-            thead
-              tr
-                th 
-                  | Disk name
-                th 
-                  | New filesystem type
-                - if @user_selections["option"]
-                  th
-                    | Mount point
-            tbody
-              tr
-                td = @user_selections['path']
-                td = Partition.FilesystemType.key(@user_selections['fs_type'].to_i)
-                - if @user_selections['option']
-                  td
-                    | \/var/hda/disks/#{@user_selections['label']}
+  - else
+    - @user_selections["format"]
+    .col-md-6.col-md-offset-3
+      table.table
+        thead
+          tr
+            th
+              | Disk name
+            th
+              | New filesystem type
+            - if @user_selections["option"]
+              th
+                | Mount point
+        tbody
+          tr
+            td = @user_selections['path']
+            td = Partition.FilesystemType.key(@user_selections['fs_type'].to_i)
+            - if @user_selections['option']
+              td
+                | \/var/hda/disks/#{@user_selections['label']}
 
-          .col-md-12.well.well-sm
-            a.btn.btn-success href="/tab/disks/disk_wizards"
-              | Continue with another device
-            button#get_debug_info.btn.btn-warning onclick="getDebugURL();" 
-              | Get Debug infomation
-        
-        #fpaste_loading.col-md-8.col-md-offset-2
-          = image_tag "disk_wizard/progress.gif"
+      .col-md-12.well.well-sm
+        a.btn.btn-success href="/tab/disks/disk_wizards"
+          | Continue with another device
+        button#get_debug_info.btn.btn-warning onclick="getDebugURL();"
+          | Get Debug infomation
+
+    #fpaste_loading.col-md-8.col-md-offset-2
+      = image_tag "disk_wizard/progress.gif"
+      p.text-primary
+        span.glyphicon.glyphicon-time
+        | Please wait.Generating fpaste URL.......
+    #debug_info.col-md-10.col-md-offset-1 style=("display: none;")
+      .panel.panel-default
+        form.form-inline role="form"
+          .form-group.has-success.has-feedback
+            label.control-label for="fpaste_url"
+              | URL:
+              span.glyphicon.glyphicon-globe
+            input#fpaste_url.form-control autocomplete="off" data-placement="top" data-toggle="tooltip" onclick="$(this).select();" placeholder=("Generating URL..") style=("width: 500px;") title=("Press Ctrl+c to coppy URL to clipboard") type="text" /
+            span.glyphicon.glyphicon-ok.form-control-feedback
+        .panel-body.text-left
           p.text-primary
-            span.glyphicon.glyphicon-time
-            | Please wait.Generating fpaste URL.......
-        #debug_info.col-md-10.col-md-offset-1 style=("display: none;") 
-          .panel.panel-default
-            form.form-inline role="form" 
-              .form-group.has-success.has-feedback
-                label.control-label for="fpaste_url" 
-                  | URL:
-                  span.glyphicon.glyphicon-globe
-                input#fpaste_url.form-control autocomplete="off" data-placement="top" data-toggle="tooltip" onclick="$(this).select();" placeholder=("Generating URL..") style=("width: 500px;") title=("Press Ctrl+c to coppy URL to clipboard") type="text" /
-                span.glyphicon.glyphicon-ok.form-control-feedback
-            .panel-body.text-left
-              p.text-primary
-                | After generating your paste, copy the generated url above.
-              p.text-primary
-                | Head over to the Amahi IRC channel, and share your link with one of the helpful folks there.
-              p.text-info
-                | Good Luck! Thanks for choosing Amahi.
- 
+            | After generating your paste, copy the generated url above.
+          p.text-primary
+            | Head over to the Amahi IRC channel, and share your link with one of the helpful folks there.
+          p.text-info
+            | Good Luck! Thanks for choosing Amahi.
