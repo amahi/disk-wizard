@@ -140,31 +140,39 @@ javascript:
     #contextMenu
       ul.dropdown-menu role="menu" 
         li
-          a href="#" tabindex="-1"  New
+          a href="#" tabindex="-1"
+            | New
         li
-          a href="#" tabindex="-1"  Delete
+          a href="#" tabindex="-1"
+            | Delete
         li.divider
         li
           a href="#" tabindex="-1"  
             | Resize/Move
         li.divider
         li
-          a href="#" tabindex="-1"  Copy
+          a href="#" tabindex="-1"
+            | Copy
         li
-          a href="#" tabindex="-1"  Paste
+          a href="#" tabindex="-1"
+            | Paste
         li.divider
         li.dropdown-submenu
           a href="#" tabindex="-1"  
             | Format to
           ul.dropdown-menu
             li
-              a href="#" tabindex="-1"  NTFS
+              a href="#" tabindex="-1"
+                | NTFS
             li
-              a href="#" tabindex="-1"  Ext4
+              a href="#" tabindex="-1"
+                | Ext4
             li
-              a href="#" tabindex="-1"  Ext3
+              a href="#" tabindex="-1"
+                | Ext3
             li
-              a href="#" tabindex="-1"  Fat32
+              a href="#" tabindex="-1"
+                | Fat32
 
     css:
       .settings-table {
@@ -191,24 +199,24 @@ javascript:
           | "TYPE"=>"part", "SIZE"=>"104857600", "PATH"=>"/dev/sda1", "MOUNTPOINT"=>nil, "FSTYPE"=>"devtmpfs"
 
         - unless device.partitions.blank?
-        - for partition in device.partitions        
-        tr data-target="#contextMenu" data-toggle="context" path="#{partition.path}" style=("position: relative;cursor: pointer;") class="#{!!(user_selections['path'] == partition.path rescue false) ? 'info context' : 'context'}"
+          - for partition in device.partitions
+            tr data-target="#contextMenu" data-toggle="context" path="#{partition.path}" style=("position: relative;cursor: pointer;") class="#{!!(user_selections['path'] == partition.path rescue false) ? 'info context' : 'context'}"
 
-          td title=("Mount point") 
-            = partition.mountpoint || "No mount point"
-          td title=("Disk name") 
-            = partition.label
-          td
-            - if partition.fstype.nil?
-              span.glyphicon.glyphicon-warning-sign
-              | Unknown
-            - else
-              = partition.fstype
-          td title=("Total size") 
-            = number_to_human_size partition.size
-          td
-            label
-              = check_box_tag(:format, 1, !!(user_selections['format'] && (user_selections['path'] == partition.path) rescue false), class: 'format')
+              td title=("Mount point")
+                = partition.mountpoint || "No mount point"
+              td title=("Disk name")
+                = partition.label
+              td
+                - if partition.fstype.nil?
+                  span.glyphicon.glyphicon-warning-sign
+                    | Unknown
+                - else
+                  = partition.fstype
+              td title=("Total size")
+                = number_to_human_size partition.size
+              td
+                label
+                  = check_box_tag(:format, 1, !!(user_selections['format'] && (user_selections['path'] == partition.path) rescue false), class: 'format')
        
         tr style=("position: relative;cursor: pointer;") path="#{device.path}" class="#{ !!(user_selections['format'] && (user_selections['partition'] == device.path) rescue false) ? 'danger' : 'warning' }"
           td colspan="4"
