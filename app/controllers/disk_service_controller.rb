@@ -51,8 +51,9 @@ class DiskServiceController < ApplicationController
   # Expected key:values in @params:
   #   :debug => Integer value(1) if debug mode has selected in fourth step(confirmation), else nil
   def progress
-    debug_mode = params[:debug]
-    self.user_selections = {debug: debug_mode}
+    @debug_mode = params[:debug]
+    #self.user_selections = {debug: debug_mode}
+    render 'disk_wizard/progress'
   end
 
 end

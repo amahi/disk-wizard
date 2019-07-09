@@ -1,12 +1,15 @@
 - javascript_include_tag "progress"
+- user_selections = {debug: @debug_mode}
 
 javascript:
   $(document).ready(function () {
       start_processing();
-       setInterval(ajaxd, 2000);
+      setInterval(ajaxd, 2000);
    });
 
    function ajaxd() {
+       console.log("ajaxd called");
+
        $.ajax({
            type: "GET",
            dataType: "json",
@@ -26,6 +29,7 @@ javascript:
    }
 
    function start_processing() {
+       console.log("start processing called");
        $.ajax({
            type: "POST",
            dataType: "json",
@@ -37,13 +41,13 @@ javascript:
   - "***************#{user_selections}"
   .row
     .col-md-5.col-md-offset-3.well
-      - image_tag("disk_wizard/loading_2.GIF")
+      / - image_tag("disk_wizard/loading_2.GIF")
       .progress.progress-striped.active
         .progress-bar.progress-bar-success aria-valuemax="100" aria-valuemin="0" aria-valuenow="100" role="progressbar" style=("width: 100%") 
           span.sr-only
             | 100%
       p.text-primary
-        = image_tag "disk_wizard/progress.gif"
+       / = image_tag "disk_wizard/progress.gif"
         /* <span class="glyphicon glyphicon-time"></span */
         span#progress_message wait....
  
