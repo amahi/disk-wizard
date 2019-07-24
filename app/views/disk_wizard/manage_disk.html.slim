@@ -18,10 +18,10 @@ javascript:
   = hidden_field_tag 'device', user_selections['path']
   .row
     - "*#{user_selections}"
-    .col-md-5.col-md-offset-3.well
+    div style="margin: 10px auto;"
       ul.list-group
         li.list-group-item.list-group-item-success
-          h5 
+          h6
             | What would you like to do?
         li.list-group-item
           .checkbox
@@ -33,9 +33,9 @@ javascript:
                 span.input-group-addon
                   | Enter a label
                 input#label.form-control name="label" placeholder="Label" style=("margin: auto;") type="text" value=("#{user_selections['label'] || nil}") /
-  .row.text-left
-    = link_to(disk_wizards_engine.file_system_path , class: "btn btn-default") do
+  .row.mt-2
+    = link_to(disk_wizards_engine.file_system_path , class: "btn btn-default back-button-wizard") do
       | ← Back
-    = link_to '#', :onclick => "$('#options').submit()", style: "float: right;", class: "btn btn-success" do
+    = link_to '#', :onclick => "$('#options').submit()", style: "float: right;", class: "btn btn-success right-button-wizard" do
       | Next →
  
