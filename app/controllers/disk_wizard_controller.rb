@@ -148,4 +148,9 @@ class DiskWizardController < ApplicationController
     CommandExecutor.debug_mode = nil
   end
 
+  def progress
+    debug_mode = params[:debug]
+    self.user_selections = {debug: debug_mode}
+  end
+
 end

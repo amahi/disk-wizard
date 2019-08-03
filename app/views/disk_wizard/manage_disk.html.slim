@@ -23,14 +23,14 @@ javascript:
         li.list-group-item.list-group-item-success
           h6
             | What would you like to do?
-        li.list-group-item
+        li.list-group-item style="min-width: 320px;"
           .checkbox
-            = check_box_tag('option[]', 1, !!((user_selections['option'].include? '1') rescue false), class: 'mount_check')
             .alert.alert-info
-              label for="option_"  
+              = check_box_tag('option[]', 1, !!((user_selections['option'].include? '1') rescue false), class: 'mount_check')
+              label for="option_" style="position: relative;top: -3px;"
                 | Mount this drive automatically.
-              #label_input.input-group.input-group-sm style=("#{!!((user_selections['option'].include? '1') rescue false) ? nil : 'display: none'}") 
-                span.input-group-addon
+              #label_input.input-group.input-group-sm.mt-2 style=("#{!!((user_selections['option'].include? '1') rescue false) ? nil : 'display: none'}") 
+                span.input-group-addon.mr-2 style="position: relative;top: 3px;"
                   | Enter a label
                 input#label.form-control name="label" placeholder="Label" style=("margin: auto;") type="text" value=("#{user_selections['label'] || nil}") /
   .row.mt-2
