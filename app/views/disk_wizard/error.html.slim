@@ -9,6 +9,7 @@ javascript:
           $('#debug_info').slideDown();
       });
   }
+
   $(function () {
       $('#fpaste_url').tooltip();
       var $loading = $('#fpaste_loading').hide();
@@ -18,6 +19,10 @@ javascript:
          $loading.hide();
       });
   });
+
+  function sendReport(){
+    //
+  }
 
 css:
   /* Fix for conflicts with platform CSS */
@@ -55,44 +60,49 @@ css:
      bottom: 0px;
   }
 
-.alert.alert-danger.fade.in
-  button.close aria-hidden="true" data-dismiss="alert" type="button" 
-    | ×
-  h4 Oh snap! You got an error!
-  .well
-    p.text-primary.text-center
-      = @exception
-      | \.
+  #fpaste_loading{
+     display: inline-block;
+     margin: 0 auto;
+     margin-top: 20px;
+     font-size: 13px;
+  }
 
-  .row.text-center
+div style="background: #f5cece;padding: 15px;"
+  h4 style="color: #f56b6b;" Oh snap! You got an error!
+  p style="font-size: 13px;"
+    = @exception
+    | \.
+
+  .row.text-center.d-inline-block
     button#get_debug_info.btn.btn-warning onclick="getDebugURL();" 
       | Get Debug infomation
-    button#send_crash_report.btn.btn-default onclick="sendReport();" 
+    button#send_crash_report.btn.btn-default.ml-4.mr-4 onclick="sendReport();"
       span.glyphicon.glyphicon-send
       | Send Report to Amahi
-    a.btn.btn-default href="/tab/disks/disk_wizards" type="button" 
+    a.btn.btn-default href="/tab/disks/disk_wizard" type="button"
       | Or try again
 
   .row
     #fpaste_loading.col-md-8.col-md-offset-2
-      = image_tag "disk_wizard/progress.gif"
+      / = image_tag "disk_wizard/progress.gif"
       p.text-primary
         span.glyphicon.glyphicon-time
         | Please wait.Generating fpaste URL.......
-    #debug_info.col-md-10.col-md-offset-1 style=("display: none;") 
-      .panel.panel-default
+
+    #debug_info.col-md-10.col-md-offset-1.mx-auto style=("display: none;")
+      .panel.panel-default.p-2.mt-3
         form.form-inline.text-center role="form" 
-          .form-group.has-success.has-feedback
+          .form-group.has-success.has-feedback.pl-2
             label.control-label for="fpaste_url" 
               | URL:
               span.glyphicon.glyphicon-globe
-            input#fpaste_url.form-control autocomplete="off" data-placement="top" data-toggle="tooltip" onclick="$(this).select();" placeholder=("Generating URL..") style=("width: 500px;") title=("Press Ctrl+c to coppy URL to clipboard") type="text" /
+            input#fpaste_url.form-control autocomplete="off" data-placement="top" data-toggle="tooltip" onclick="$(this).select();" placeholder=("Generating URL..") style=("width: 500px;font-size:14px;") title=("Press Ctrl+C to copy URL to clipboard") type="text" /
             span.glyphicon.glyphicon-ok.form-control-feedback
         .panel-body.text-left
-          p.text-primary
+          p.text-primary.mt-2
             | After generating your paste, copy the generated url above.
           p.text-primary
             | Head over to the Amahi IRC channel, and share your link with one of the helpful folks there.
-          p.text-info
+          span.text-info
             | Good Luck! Thanks for choosing Amahi.
  

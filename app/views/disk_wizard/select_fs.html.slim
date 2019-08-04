@@ -136,7 +136,7 @@ javascript:
   = hidden_field_tag 'model', @selected_disk.model
   = hidden_field_tag 'partition', nil
 
-  .row.col-md-10.col-md-offset-1
+  .row.mt-2.mb-2
     #contextMenu
       ul.dropdown-menu role="menu" 
         li
@@ -183,7 +183,7 @@ javascript:
           border-radius: 5px;
       }
 
-    table.settings.table-bordered.table.table-hover
+    table.settings.table-bordered.table style="border: 0px;"
       thead
         tr
           - device = @selected_disk
@@ -218,7 +218,7 @@ javascript:
                 label
                   = check_box_tag(:format, 1, !!(user_selections['format'] && (user_selections['path'] == partition.path) rescue false), class: 'format')
        
-        tr style=("position: relative;cursor: pointer;") path="#{device.path}" class="#{ !!(user_selections['format'] && (user_selections['partition'] == device.path) rescue false) ? 'danger' : 'warning' }"
+        tr style=("position: relative; cursor: pointer; margin: 0;") path="#{device.path}" class="#{ !!(user_selections['format'] && (user_selections['partition'] == device.path) rescue false) ? 'danger' : 'warning' }"
           td colspan="4"
             | Format entire disk
           td style=("width: 1%;") 
@@ -227,15 +227,15 @@ javascript:
 
   .row
     #fs_selector.col-md-5.col-md-offset-4 style=("display: none;") 
-      .well
+      div
         ul.list-group
           li.list-group-item.list-group-item-success
             | Please select a file system type
           = select_tag :fs_type, options_for_select([["Ext4", 0], ["Ext3", 1], ["NTFS", 2], ["FAT32", 3]], 0), class: "form-control"
 
-  .row.text-left
-    = link_to(defined?(disk_wizards_engine) ? disk_wizards_engine.select_path : select_path, class: "btn btn-default") do
+  .row.mt-2
+    = link_to(defined?(disk_wizards_engine) ? disk_wizards_engine.select_path : select_path, class: "btn btn-default back-button-wizard") do
       | ← Back
-    = link_to '#', :onclick => "$('#select_fs').submit()", style: "float: right;", class: "btn btn-success" do
+    = link_to '#', :onclick => "$('#select_fs').submit()", style: "float: right;", class: "btn btn-success right-button-wizard" do
       span#proceed Skip
       | →
