@@ -32,15 +32,14 @@ css:
       font-size: large;
   }
 
-.row
-  br/
+.row.p-2.d-inline-block
   - if user_selections['debug']
-    .col-md-10.col-md-offset-1
+    div
       .panel.panel-warning
-        .panel-heading
+        .h4.mt-3
           | Debug Information
           span.glyphicon.glyphicon-info-sign
-        .panel-body.text-left
+        .panel-body.text-left style="font-size: 14px;"
           p.text-muted
             | Note:
           p.text-muted
@@ -49,15 +48,16 @@ css:
             | 2. Pipeline character(|) has encoded as exclamation character(!).
           p.text-muted
             | 3. Order(#) of the commands does matter if you try to execute them manually.
+
         table.table.table-bordered.table-hover
           thead
             tr.active
               th.text-center.text-primary style=("width: 5%;")
-              | #
+                | #
               th.text-center.text-primary style=("width: 20%;") 
-              | Command name
+                | Command name
               th.text-center.text-primary
-              | Parameters
+                | Parameters
 
           tbody
             - count = 0
@@ -108,7 +108,7 @@ css:
           | Get Debug infomation
 
     #fpaste_loading.col-md-8.col-md-offset-2
-      = image_tag "disk_wizard/progress.gif"
+      / = image_tag "disk_wizard/progress.gif"
       p.text-primary
         span.glyphicon.glyphicon-time
         | Please wait.Generating fpaste URL.......
