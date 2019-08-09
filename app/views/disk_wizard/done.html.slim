@@ -82,7 +82,7 @@ css:
                       br/
   - else
     - @user_selections["format"]
-    .col-md-6.col-md-offset-3
+    div
       table.table
         thead
           tr
@@ -101,10 +101,10 @@ css:
               td
                 | \/var/hda/disks/#{@user_selections['label']}
 
-      .col-md-12.well.well-sm
-        a.btn.btn-success href="/tab/disks/disk_wizards"
+      .col-md-12
+        a.btn.btn-success.mb-2 href="/tab/disks/disk_wizard"
           | Continue with another device
-        button#get_debug_info.btn.btn-warning onclick="getDebugURL();"
+        button#get_debug_info.btn.btn-warning.ml-3.mb-2 onclick="getDebugURL();"
           | Get Debug infomation
 
     #fpaste_loading.col-md-8.col-md-offset-2
@@ -112,14 +112,14 @@ css:
       p.text-primary
         span.glyphicon.glyphicon-time
         | Please wait.Generating fpaste URL.......
-    #debug_info.col-md-10.col-md-offset-1 style=("display: none;")
-      .panel.panel-default
-        form.form-inline role="form"
+    #debug_info.col-md-10.d-inline-block.mt-2 style=("display: none;")
+      div.mt-2.panel.panel-default
+        form.ml-2.form-inline role="form"
           .form-group.has-success.has-feedback
             label.control-label for="fpaste_url"
               | URL:
               span.glyphicon.glyphicon-globe
-            input#fpaste_url.form-control autocomplete="off" data-placement="top" data-toggle="tooltip" onclick="$(this).select();" placeholder=("Generating URL..") style=("width: 500px;") title=("Press Ctrl+c to coppy URL to clipboard") type="text" /
+            input#fpaste_url.form-control autocomplete="off" data-placement="top" data-toggle="tooltip" onclick="$(this).select();" placeholder=("Generating URL..") style=("width: 375px;") title=("Press Ctrl+c to coppy URL to clipboard") type="text" /
             span.glyphicon.glyphicon-ok.form-control-feedback
         .panel-body.text-left
           p.text-primary
