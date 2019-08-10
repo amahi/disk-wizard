@@ -62,7 +62,7 @@ module Operation
       DiskUtils.probe_kernal
     end
     DebugLogger.info "|#{self.class.name}|>|#{__method__}|:Device Kname #{self.kname}"
-    node = DiskUtils.find dev_path
+    node = DiskUtils.all_devices dev_path
     if node['type'].eql? 'part'
       node.each do |key, value|
         instance_variable_set("@#{key}", value) unless value.nil?
